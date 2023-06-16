@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <title>Ice Cream Picker</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+  </head>
+  <body>
+
+    <py-config>
+      packages = ["matplotlib", "pandas"]
+      [[fetch]]
+      files = ['./dist_exp_data.csv']
+    </py-config>
+
+    <py-script>
+      import js
+      import pandas as pd
+      import matplotlib.pyplot as plt
+
+      from pyodide.http import open_url
+      from pyodide.ffi import create_proxy
+
+      data = pd.read_csv('dist_exp_data.csv')
+
+      plot_data = data[(data['Income Type'] == 'Income Quantiles') & (data['Population Type'] == 'Household') & (data.Description == 'All households') & (data['Income Measure'] == 'Taxable Income')][['Income Group','Value']]
+      plot_data.Value = plot_data.Value.astype(int)
+      
+      fig, ax = plt.subplots()
+      bars = ax.barh(plot_data['Income Group'], plot_data.Value, height=0.7)
+      ax.bar_label(bars)
+      plt.title("Stuff")
+      display(fig, target="graph-area", append=False)
+
+    </py-script>
+
+    <div id="graph-area"></div>
+  </body>
+</html>
