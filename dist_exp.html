@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Ice Cream Picker</title>
+    <title>Distribution Explorer PyScript Prototype</title>
     <meta charset="utf-8">
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
@@ -13,27 +13,30 @@
       files = ['./dist_exp_data.csv']
     </py-config>
 
-    <py-script>
-      import js
-      import pandas as pd
-      import matplotlib.pyplot as plt
+    <py-script src = './main.py'></py-script>
 
-      from pyodide.http import open_url
-      from pyodide.ffi import create_proxy
+    
+    <div id="input" style="margin: 20px;">
+      <label for="pop_type">Population Type:</label>
+      <select name="pop_type" id="pop_type">
+        <option value="Household">Household</option>
+        <option value="Family">Family</option>
+      </select>
 
-      data = pd.read_csv('dist_exp_data.csv')
+      <label for="income_type">Income Type:</label>
+      <select name="income_type" id="income_type">
+        <option value="Equivalised Disposable Income">Equivalised Disposable Income</option>
+        <option value="Taxable Income">Taxable Income</option>
+        <option value="Total Income">Total Income</option>
+        <option value="Disposable Income">Disposable Income</option>
+      </select>
 
-      plot_data = data[(data['Income Type'] == 'Income Quantiles') & (data['Population Type'] == 'Household') & (data.Description == 'All households') & (data['Income Measure'] == 'Taxable Income')][['Income Group','Value']]
-      plot_data.Value = plot_data.Value.astype(int)
-      
-      fig, ax = plt.subplots()
-      bars = ax.barh(plot_data['Income Group'], plot_data.Value, height=0.7)
-      ax.bar_label(bars)
-      plt.title("Stuff")
-      display(fig, target="graph-area", append=False)
+      <button py-click="update()" id="update" class="py-button">Generate plots and tables</button>
 
-    </py-script>
+    </div>
 
     <div id="graph-area"></div>
+
+    <div id="table-area"></div>
   </body>
 </html>

@@ -1,0 +1,71 @@
+<html>
+  <head>
+    <title>Distribution Explorer PyScript Prototype</title>
+    <meta charset="utf-8">
+    <script
+        type="text/javascript"
+        src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.3.js"
+    ></script>
+    <script
+        type="text/javascript"
+        src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.3.min.js"
+    ></script>
+    <script
+        type="text/javascript"
+        src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.3.min.js"
+    ></script>
+    <script
+        type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@holoviz/panel@0.14.1/dist/panel.min.js"
+    ></script>
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+        />
+    <link
+    rel="stylesheet"
+    href="https://unpkg.com/@holoviz/panel@0.13.1/dist/bundled/bootstraptemplate/bootstrap.css"
+/>
+<link
+            rel="stylesheet"
+            href="https://unpkg.com/@holoviz/panel@0.13.1/dist/bundled/defaulttheme/default.css"
+        />
+
+<style>
+    #sidebar {
+        width: 350px;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+  </head>
+  
+  <body>
+    <section class="pyscript">
+        <div class="row overflow-hidden" id="content">
+            <div class="sidenav" id="sidebar">
+                <ul class="nav flex-column">
+                    <div class="bk-root" id="pop_type"></div>
+                    <div class="bk-root" id="income_type"></div>
+                    <div class="bk-root" id="go_button"></div>
+                </ul>
+        </div>
+        <div class="col mh-100 float-left" id="main">
+            <div class="bk-root" id="plot-area"></div>
+        </div>
+        
+    <py-config>
+      packages = [
+        "https://cdn.holoviz.org/panel/0.14.3/dist/wheels/bokeh-2.4.3-py3-none-any.whl",
+        "matplotlib", "pandas", "panel==0.14.1"]
+      [[fetch]]
+      files = ['./dist_exp_data.csv']
+    </py-config>
+</section>
+    <py-script src = './main_panel.py'></py-script>
+    
+  </body>
+</html>
