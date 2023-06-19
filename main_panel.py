@@ -41,6 +41,7 @@ def do_plot(pop_type, groups, income_type):
     fig.suptitle(f"{pop_type}: {income_type}")
     return fig
 
+banner = pn.pane.Markdown('# Income Distribution Explorer').servable(target='banner')
 
 pop_selector = pn.widgets.Select(
     name='Population Type', options = ['Household', 'Family']).servable(target='pop_type')
