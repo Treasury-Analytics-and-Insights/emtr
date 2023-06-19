@@ -27,18 +27,17 @@ def get_subset_data(pop_type, groups, income_type):
     return(subset_data)
 
 def plot(ax, plot_data, title):
-    bars = ax.bar(plot_data['Income Group'], plot_data.Value.astype(int), width=0.7)
+    ax.bar(plot_data['Income Group'], plot_data.Value.astype(int), width=0.7)
     ax.set_title(title)
 
 def do_plot(pop_type, groups, income_type):
     fig = plt.figure(figsize=get_figsize(len(groups)))
     nrows, ncols = subplot_dims[len(groups)]
-    axes = fig.subplots(nrows, ncols, squeeze = False)
-    axes = axes.flatten().tolist()
     for i, group in enumerate(groups):
         plot_data = get_subset_data(pop_type, [group], income_type)
         plot_data = plot_data[plot_data.Value.str.isnumeric()]
-        plot(axes[i], plot_data, group)
+        ax = fig.add_subplot(nrows, ncols, i+1)
+        plot(ax, plot_data, group)
     fig.suptitle(f"{pop_type}: {income_type}")
     return fig
 
@@ -70,6 +69,7 @@ mpl = pn.pane.Matplotlib(
     max_height=800, max_width=1000
     ).servable(target='plot-area')
 
+# I want to make this table appear with scroll bars when it gets too big
 table = pn.pane.DataFrame(
     get_subset_data(pop_selector.value, group_selector.value, measure_selector.value), 
     index=False, sizing_mode="stretch_both", max_height=300).servable(target="table-area")
