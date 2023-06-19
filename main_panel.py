@@ -1,52 +1,78 @@
-import js
 import pandas as pd
 import matplotlib.pyplot as plt
 import panel as pn
 
-from pyodide.http import open_url
-from pyodide.ffi import create_proxy
 
 pn.extension(sizing_mode="stretch_width")
 
+subplot_dims = {
+    1: (1,1), 2: (1,2), 3: (1,3), 4: (2,2), 5: (2,3), 6: (2,3), 7: (2,4), 
+    8:(2,4), 9: (3,3), 10: (3,4), 11: (3,4), 12: (3,4)}
+
+def get_figsize(n_groups):
+    return {1: (10,8), 2: (18,8), 3: (18,8)}.get(n_groups, (18, 14))
+    
 data = pd.read_csv('dist_exp_data.csv')
 
-def get_subset_data(pop_type, income_type):
-    desc = {'Household': 'All households', 'Family': 'All families'}
+groups = {
+    pop_type: data[data['Population Type'] == pop_type].Description.unique().tolist() 
+    for pop_type in ['Household', 'Family']}
+    
+
+def get_subset_data(pop_type, groups, income_type):
     subset_data = data[(data['Income Type'] == 'Income Quantiles') & 
                      (data['Population Type'] == pop_type) & 
-                     (data.Description == desc[pop_type]) & 
+                     (data.Description.isin(groups)) & 
                      (data['Income Measure'] == income_type)]
     return(subset_data)
 
 def plot(ax, plot_data, title):
-    
-    bars = ax.barh(plot_data['Income Group'], plot_data.Value.astype(int), height=0.7)
-    ax.bar_label(bars)
-    plt.title(title)
+    bars = ax.bar(plot_data['Income Group'], plot_data.Value.astype(int), width=0.7)
+    ax.set_title(title)
 
-def do_plot(fig, pop_type, income_type):
-    subset_data = get_subset_data(pop_type, income_type)
-    fig.clear()
-    ax = fig.subplots()
-    plot(ax, subset_data, f"{pop_selector.value}: {measure_selector.value}")
-    
-def table(subset_data):
-    table_div = Element("table-area")
-    table_div.element.innerHTML = subset_data.to_html(index=False)
+def do_plot(pop_type, groups, income_type):
+    fig = plt.figure(figsize=get_figsize(len(groups)))
+    nrows, ncols = subplot_dims[len(groups)]
+    axes = fig.subplots(nrows, ncols, squeeze = False)
+    axes = axes.flatten().tolist()
+    for i, group in enumerate(groups):
+        plot_data = get_subset_data(pop_type, [group], income_type)
+        plot_data = plot_data[plot_data.Value.str.isnumeric()]
+        plot(axes[i], plot_data, group)
+    fig.suptitle(f"{pop_type}: {income_type}")
+    return fig
 
 
 pop_selector = pn.widgets.Select(
     name='Population Type', options = ['Household', 'Family']).servable(target='pop_type')
 
+group_selector = pn.widgets.CheckBoxGroup(
+    name = 'Group', options = groups[pop_selector.value], value=[groups[pop_selector.value][0]]
+    ).servable(target='groups')
+
+def update_groups(event):
+    group_selector.options = groups[event.new]
+    group_selector.value = [groups[event.new][0]]
+
+pop_selector.param.watch(update_groups, 'value')
+
 measure_selector = pn.widgets.Select(
-    name='Income Measure', options = data['Income Measure'].unique().tolist()).servable(target='income_type')
+    name='Income Measure', options = data['Income Measure'].unique().tolist()
+    ).servable(target='income_type')
 
 go_button = pn.widgets.Button(name='Click me', button_type='primary').servable(target='go_button')
 
-fig = plt.figure(figsize=(10,8))
-do_plot(fig, pop_selector.value, measure_selector.value)
+fig = do_plot(pop_selector.value, group_selector.value, measure_selector.value)
 
-mpl = pn.pane.Matplotlib(fig).servable(target='plot-area')
+mpl = pn.pane.Matplotlib(
+    fig, tight=True, 
+    sizing_mode='scale_both', 
+    max_height=800, max_width=1000
+    ).servable(target='plot-area')
+
+table = pn.pane.DataFrame(
+    get_subset_data(pop_selector.value, group_selector.value, measure_selector.value), 
+    index=False, sizing_mode="stretch_both", max_height=300).servable(target="table-area")
 
 text = pn.pane.Markdown(
     "These results are not official statistics. They have been created for research purposes from the "
@@ -58,7 +84,10 @@ text = pn.pane.Markdown(
     "core operational requirements.").servable(target='text-area')
 
 def update(event):
-    do_plot(fig, pop_selector.value, measure_selector.value)
-    mpl.param.trigger('object')
+    fig = do_plot(pop_selector.value, group_selector.value, measure_selector.value)
+    mpl.object=fig
+    table.object=get_subset_data(pop_selector.value, group_selector.value, measure_selector.value)
+#    size = fig.get_size_inches()
+
 
 go_button.on_click(update)
