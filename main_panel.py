@@ -14,31 +14,49 @@ def get_figsize(n_groups):
     
 data = pd.read_csv('dist_exp_data.csv')
 
+# each population type has a different set of groups
 groups = {
     pop_type: data[data['Population Type'] == pop_type].Description.unique().tolist() 
     for pop_type in ['Household', 'Family']}
     
 
-def get_subset_data(pop_type, groups, income_type):
-    subset_data = data[(data['Income Type'] == 'Income Quantiles') & 
+def get_subset_data(pop_type, groups, income_measure, income_type):
+    """Return a subset of the data based on the population type, income measure and groups."""
+    subset_data = data[(data['Income Type'] == income_type) & 
                      (data['Population Type'] == pop_type) & 
                      (data.Description.isin(groups)) & 
-                     (data['Income Measure'] == income_type)]
-    return(subset_data)
+                     (data['Income Measure'] == income_measure)]
+    return subset_data
 
-def plot(ax, plot_data, title):
-    ax.bar(plot_data['Income Group'], plot_data.Value.astype(int), width=0.7)
-    ax.set_title(title)
 
-def do_plot(pop_type, groups, income_type):
+def do_plot(pop_type, groups, income_measure, income_type):
     fig = plt.figure(figsize=get_figsize(len(groups)))
     nrows, ncols = subplot_dims[len(groups)]
+    subset_data = get_subset_data(pop_type, groups, income_measure, income_type)
+    # set all non numeric Population values to 0 and convert the rest to integers
+    subset_data.loc[~subset_data.Population.str.isnumeric(), 'Population'] = 0
+    subset_data.Population = subset_data.Population.astype(int)
+    # to set axis limits
+    max_pop = subset_data.Population.max()    
     for i, group in enumerate(groups):
-        plot_data = get_subset_data(pop_type, [group], income_type)
-        plot_data = plot_data[plot_data.Value.str.isnumeric()]
+
+        plot_data = subset_data[subset_data.Description == group]
         ax = fig.add_subplot(nrows, ncols, i+1)
-        plot(ax, plot_data, group)
-    fig.suptitle(f"{pop_type}: {income_type}")
+
+        # if income_type is Income_band, then make the barplot horizontal
+        if income_type == 'Income Bands':
+            ax.barh(plot_data['Income Group'], plot_data.Population, height=0.7)
+            ax.set_xlabel('Population')
+            ax.set_ylabel(income_type)
+            ax.set_xlim(0, max_pop)
+        else:
+            ax.bar(plot_data['Income Group'], plot_data.Population, width=0.7)
+            ax.set_ylabel('Population')
+            ax.set_xlabel(income_type)
+            ax.set_ylim(0, max_pop)
+        ax.set_title(group)
+
+    fig.suptitle(f"{pop_type}: {income_measure}")
     return fig
 
 banner = pn.pane.Markdown('# Income Distribution Explorer').servable(target='banner')
@@ -58,11 +76,16 @@ pop_selector.param.watch(update_groups, 'value')
 
 measure_selector = pn.widgets.Select(
     name='Income Measure', options = data['Income Measure'].unique().tolist()
-    ).servable(target='income_type')
+    ).servable(target='income_measure')
+
+income_type_selector = pn.widgets.Select(
+    name='Income Type', options = data['Income Type'].unique().tolist()
+).servable(target='income_type')
 
 go_button = pn.widgets.Button(name='Click me', button_type='primary').servable(target='go_button')
 
-fig = do_plot(pop_selector.value, group_selector.value, measure_selector.value)
+fig = do_plot(
+    pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
 
 mpl = pn.pane.Matplotlib(
     fig, tight=True, 
@@ -72,7 +95,7 @@ mpl = pn.pane.Matplotlib(
 
 # I want to make this table appear with scroll bars when it gets too big
 table = pn.pane.DataFrame(
-    get_subset_data(pop_selector.value, group_selector.value, measure_selector.value), 
+    get_subset_data(pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value), 
     index=False, sizing_mode="stretch_both", max_height=300).servable(target="table-area")
 
 text = pn.pane.Markdown(
@@ -85,10 +108,10 @@ text = pn.pane.Markdown(
     "core operational requirements.").servable(target='text-area')
 
 def update(event):
-    fig = do_plot(pop_selector.value, group_selector.value, measure_selector.value)
+    fig = do_plot(pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
     mpl.object=fig
-    table.object=get_subset_data(pop_selector.value, group_selector.value, measure_selector.value)
-#    size = fig.get_size_inches()
+    table.object=get_subset_data(
+        pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
 
 
 go_button.on_click(update)
