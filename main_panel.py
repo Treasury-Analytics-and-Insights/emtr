@@ -13,6 +13,11 @@ def get_figsize(n_groups):
     return {1: (10,8), 2: (18,8), 3: (18,8)}.get(n_groups, (18, 14))
     
 data = pd.read_csv('dist_exp_data.csv')
+# make a Plot Population column that is the same as Population but 
+# numeric and non-numeric values are set to 0
+data['Plot Population'] = data.Population
+data.loc[~data.Population.str.isnumeric(), 'Plot Population'] = 0
+data['Plot Population'] = data['Plot Population'].astype(int)
 
 # each population type has a different set of groups
 groups = {
@@ -33,11 +38,8 @@ def do_plot(pop_type, groups, income_measure, income_type):
     fig = plt.figure(figsize=get_figsize(len(groups)))
     nrows, ncols = subplot_dims[len(groups)]
     subset_data = get_subset_data(pop_type, groups, income_measure, income_type)
-    # set all non numeric Population values to 0 and convert the rest to integers
-    subset_data.loc[~subset_data.Population.str.isnumeric(), 'Population'] = 0
-    subset_data.Population = subset_data.Population.astype(int)
-    # to set axis limits
-    max_pop = subset_data.Population.max()    
+    # get the max population for each group to set the axis limits
+    max_pop = subset_data['Plot Population'].max()    
     for i, group in enumerate(groups):
 
         plot_data = subset_data[subset_data.Description == group]
@@ -45,12 +47,12 @@ def do_plot(pop_type, groups, income_measure, income_type):
 
         # if income_type is Income_band, then make the barplot horizontal
         if income_type == 'Income Bands':
-            ax.barh(plot_data['Income Group'], plot_data.Population, height=0.7)
+            ax.barh(plot_data['Income Group'], plot_data['Plot Population'], height=0.7)
             ax.set_xlabel('Population')
             ax.set_ylabel(income_type)
             ax.set_xlim(0, max_pop)
         else:
-            ax.bar(plot_data['Income Group'], plot_data.Population, width=0.7)
+            ax.bar(plot_data['Income Group'], plot_data['Plot Population'], width=0.7)
             ax.set_ylabel('Population')
             ax.set_xlabel(income_type)
             ax.set_ylim(0, max_pop)
@@ -59,7 +61,7 @@ def do_plot(pop_type, groups, income_measure, income_type):
     fig.suptitle(f"{pop_type}: {income_measure}")
     return fig
 
-banner = pn.pane.Markdown('# Income Distribution Explorer').servable(target='banner')
+title = pn.pane.Markdown('# Income Distribution Explorer').servable(target='title')
 
 pop_selector = pn.widgets.Select(
     name='Population Type', options = ['Household', 'Family']).servable(target='pop_type')
