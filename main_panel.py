@@ -3,14 +3,19 @@ import matplotlib.pyplot as plt
 import panel as pn
 
 
-pn.extension(sizing_mode="stretch_width")
+#pn.extension(sizing_mode="stretch_width")
 
 subplot_dims = {
     1: (1,1), 2: (1,2), 3: (1,3), 4: (2,2), 5: (2,3), 6: (2,3), 7: (2,4), 
     8:(2,4), 9: (3,3), 10: (3,4), 11: (3,4), 12: (3,4)}
 
 def get_figsize(n_groups):
-    return {1: (10,8), 2: (18,8), 3: (18,8)}.get(n_groups, (18, 14))
+    if n_groups <= 3:
+        return {1: (10,8), 2: (15,5), 3: (18,4), 4: (15,15)}[n_groups]
+    elif n_groups <= 8:
+        return (18, 8)
+    else: 
+        return(18,12)
     
 data = pd.read_csv('dist_exp_data.csv')
 # make a Plot Population column that is the same as Population but 
@@ -51,11 +56,15 @@ def do_plot(pop_type, groups, income_measure, income_type):
             ax.set_xlabel('Population')
             ax.set_ylabel(income_type)
             ax.set_xlim(0, max_pop)
+            # format the x-axis ticks as thousands
+            ax.xaxis.set_major_formatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'k')
         else:
             ax.bar(plot_data['Income Group'], plot_data['Plot Population'], width=0.7)
             ax.set_ylabel('Population')
             ax.set_xlabel(income_type)
             ax.set_ylim(0, max_pop)
+            # format the y-axis ticks as thousands
+            ax.yaxis.set_major_formatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'k')
         ax.set_title(group)
 
     fig.suptitle(f"{pop_type}: {income_measure}")
@@ -92,7 +101,7 @@ fig = do_plot(
 mpl = pn.pane.Matplotlib(
     fig, tight=True, 
     sizing_mode='scale_both', 
-    max_height=800, max_width=1000
+    max_height=600, max_width=1000
     ).servable(target='plot-area')
 
 # I want to make this table appear with scroll bars when it gets too big
