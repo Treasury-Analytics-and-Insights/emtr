@@ -38,6 +38,9 @@ def get_subset_data(pop_type, groups, income_measure, income_type):
                      (data['Income Measure'] == income_measure)]
     return subset_data
 
+def pop_tick_formatter(x, pos):
+    """Format the y-axis ticks as thousands."""
+    return '{:,.0f}'.format(x/1000) + 'k'   
 
 def do_plot(pop_type, groups, income_measure, income_type):
     fig = plt.figure(figsize=get_figsize(len(groups)))
@@ -50,21 +53,33 @@ def do_plot(pop_type, groups, income_measure, income_type):
         plot_data = subset_data[subset_data.Description == group]
         ax = fig.add_subplot(nrows, ncols, i+1)
 
+       
         # if income_type is Income_band, then make the barplot horizontal
         if income_type == 'Income Bands':
             ax.barh(plot_data['Income Group'], plot_data['Plot Population'], height=0.7)
-            ax.set_xlabel('Population')
-            ax.set_ylabel(income_type)
+            # only show the x-axis label on the bottom row
+            if i >= len(groups) - ncols:
+                ax.set_xlabel('Population')
+            if i % ncols == 0:  
+                ax.set_ylabel(income_type)
             ax.set_xlim(0, max_pop)
             # format the x-axis ticks as thousands
-            ax.xaxis.set_major_formatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'k')
+            ax.xaxis.set_major_formatter(pop_tick_formatter)
         else:
             ax.bar(plot_data['Income Group'], plot_data['Plot Population'], width=0.7)
-            ax.set_ylabel('Population')
-            ax.set_xlabel(income_type)
+            if i % ncols == 0:  
+                ax.set_ylabel('Population')
+            if i >= len(groups) - ncols:
+                ax.set_xlabel(income_type)
             ax.set_ylim(0, max_pop)
             # format the y-axis ticks as thousands
-            ax.yaxis.set_major_formatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'k')
+            ax.yaxis.set_major_formatter(pop_tick_formatter)
+
+        # format plot in a tufte style
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.tick_params(axis='both', which='major', labelsize=8)
+        
         ax.set_title(group)
 
     fig.suptitle(f"{pop_type}: {income_measure}")
