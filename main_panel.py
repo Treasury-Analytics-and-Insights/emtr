@@ -10,8 +10,8 @@ subplot_dims = {
     8:(2,4), 9: (3,3), 10: (3,4), 11: (3,4), 12: (3,4)}
 
 def get_figsize(n_groups):
-    if n_groups <= 3:
-        return {1: (10,8), 2: (15,5), 3: (18,4), 4: (15,15)}[n_groups]
+    if n_groups <= 4:
+        return {1: (10,6), 2: (15,5), 3: (18,4), 4: (15,10)}[n_groups]
     elif n_groups <= 8:
         return (18, 8)
     else: 
@@ -83,6 +83,7 @@ def do_plot(pop_type, groups, income_measure, income_type):
         ax.set_title(group)
 
     fig.suptitle(f"{pop_type}: {income_measure}")
+    fig.savefig('plot.svg', bbox_inches='tight')
     return fig
 
 title = pn.pane.Markdown('# Income Distribution Explorer').servable(target='title')
@@ -116,13 +117,18 @@ fig = do_plot(
 mpl = pn.pane.Matplotlib(
     fig, tight=True, 
     sizing_mode='scale_both', 
-    max_height=600, max_width=1000
+    max_width=1000,
+    max_height=800
     ).servable(target='plot-area')
 
+#svg = pn.pane.SVG('plot.svg', sizing_mode='stretch_both').servable(target='svg-area')
+
+data_heading = pn.pane.Markdown('## Data').servable(target='data_heading')
 # I want to make this table appear with scroll bars when it gets too big
 table = pn.pane.DataFrame(
     get_subset_data(pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value), 
-    index=False, sizing_mode="stretch_both", max_height=300).servable(target="table-area")
+    index=False, sizing_mode="stretch_both", max_height=300, show_dimensions=True, justify='right').servable(
+        target="table-area")
 
 text = pn.pane.Markdown(
     "These results are not official statistics. They have been created for research purposes from the "
@@ -136,6 +142,7 @@ text = pn.pane.Markdown(
 def update(event):
     fig = do_plot(pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
     mpl.object=fig
+    #svg.object='plot.svg'
     table.object=get_subset_data(
         pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
 
