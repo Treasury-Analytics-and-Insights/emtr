@@ -134,7 +134,8 @@ row = pn.Row(data_heading, download).servable(target='row')
 
 # q: how do I format this table nicely?
 table = pn.pane.DataFrame(
-    get_subset_data(pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value), 
+    get_subset_data(pop_selector.value, group_selector.value,
+                    measure_selector.value, income_type_selector.value).drop('Plot Population', axis=1), 
     index=False, sizing_mode="stretch_both", max_height=300, show_dimensions=True, justify='right').servable(
         target="table-area")
 
