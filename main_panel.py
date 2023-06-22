@@ -4,6 +4,10 @@ import panel as pn
 
 
 #pn.extension(sizing_mode="stretch_width")
+pn.extension('tabulator')
+
+pn.widgets.Tabulator.theme = 'bootstrap4'
+pn.widgets.Tabulator.pagination = 'local'
 
 subplot_dims = {
     1: (1,1), 2: (1,2), 3: (1,3), 4: (2,2), 5: (2,3), 6: (2,3), 7: (2,4), 
@@ -133,10 +137,15 @@ download = pn.widgets.FileDownload(
 row = pn.Row(data_heading, download).servable(target='row')
 
 # q: how do I format this table nicely?
-table = pn.pane.DataFrame(
+# table = pn.pane.DataFrame(
+#     get_subset_data(pop_selector.value, group_selector.value,
+#                     measure_selector.value, income_type_selector.value).drop('Plot Population', axis=1), 
+#     index=False, sizing_mode="stretch_both", max_height=300, show_dimensions=True, justify='right').servable(
+#         target="table-area")
+
+table = pn.widgets.Tabulator(
     get_subset_data(pop_selector.value, group_selector.value,
-                    measure_selector.value, income_type_selector.value).drop('Plot Population', axis=1), 
-    index=False, sizing_mode="stretch_both", max_height=300, show_dimensions=True, justify='right').servable(
+                    measure_selector.value, income_type_selector.value).drop('Plot Population', axis=1)).servable(
         target="table-area")
 
 text = pn.pane.Markdown(
@@ -152,8 +161,11 @@ def update(event):
     fig = do_plot(pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
     mpl.object=fig
     #svg.object='plot.svg'
-    table.object=get_subset_data(
-        pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
+    #table.object=get_subset_data(
+    #    pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
+    table.value=get_subset_data(
+        pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value
+        ).drop('Plot Population', axis=1)
 
 
 go_button.on_click(update)
