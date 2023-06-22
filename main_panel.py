@@ -111,7 +111,9 @@ income_type_selector = pn.widgets.Select(
 ).servable(target='income_type')
 
 go_button = pn.widgets.Button(
-    name='Go', button_type='success', width=100, align=('center', 'center')).servable(target='go_button')
+    name='Go', button_type='success', width=100, align=('center', 'center'))
+
+pn.Row(pn.pane.Markdown("Subset and plot", align = ('end', 'center')), go_button).servable(target='go_button')
 
 fig = do_plot(
     pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
