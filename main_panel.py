@@ -84,9 +84,10 @@ def do_plot(pop_type, groups, income_measure, income_type):
 
     fig.suptitle(f"{pop_type}: {income_measure}")
     fig.savefig('plot.svg', bbox_inches='tight')
+    subset_data.drop('Plot Population', axis=1).to_csv('subset_data.csv', index=False)
     return fig
 
-title = pn.pane.Markdown('# Income Distribution Explorer').servable(target='title')
+title = pn.pane.Markdown('# Income Distribution Explorer \n\n *Best viewed full screen*').servable(target='title')
 
 pop_selector = pn.widgets.Select(
     name='Population Type', options = ['Household', 'Family']).servable(target='pop_type')
@@ -109,7 +110,8 @@ income_type_selector = pn.widgets.Select(
     name='Income Type', options = data['Income Type'].unique().tolist()
 ).servable(target='income_type')
 
-go_button = pn.widgets.Button(name='Click me', button_type='primary').servable(target='go_button')
+go_button = pn.widgets.Button(
+    name='Go', button_type='success', width=100, align=('center', 'center')).servable(target='go_button')
 
 fig = do_plot(
     pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
@@ -123,8 +125,12 @@ mpl = pn.pane.Matplotlib(
 
 #svg = pn.pane.SVG('plot.svg', sizing_mode='stretch_both').servable(target='svg-area')
 
-data_heading = pn.pane.Markdown('## Data').servable(target='data_heading')
-# I want to make this table appear with scroll bars when it gets too big
+data_heading = pn.pane.Markdown('## Data',align=('center', 'center'))
+download = pn.widgets.FileDownload(
+    'subset_data.csv', label='Download subset CSV', button_type='primary', width=150, align=('center', 'center'))
+row = pn.Row(data_heading, download).servable(target='row')
+
+# q: how do I format this table nicely?
 table = pn.pane.DataFrame(
     get_subset_data(pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value), 
     index=False, sizing_mode="stretch_both", max_height=300, show_dimensions=True, justify='right').servable(
