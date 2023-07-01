@@ -9,6 +9,7 @@ pn.extension('tabulator')
 pn.widgets.Tabulator.theme = 'bootstrap4'
 pn.widgets.Tabulator.pagination = 'local'
 #pn.pane.Matplotlib.format = 'svg' doesn't work
+#pn.widgets.WidgetBox.theme = 'dark_minimal'  probably need the right css file
 
 subplot_dims = {
     1: (1,1), 2: (1,2), 3: (1,3), 4: (2,2), 5: (2,3), 6: (2,3), 7: (2,4), 
@@ -134,27 +135,22 @@ mpl = pn.pane.Matplotlib(
     fig, tight=True, 
     sizing_mode='scale_both', 
     max_width=1000,
-    max_height=800
-    ).servable(target='plot-area')
+    max_height=800,
+    name="Plots"
+    )
 
-#svg = pn.pane.SVG('plot.svg', sizing_mode='stretch_both').servable(target='svg-area')
-
-data_heading = pn.pane.Markdown('## Data',align=('center', 'center'))
 download = pn.widgets.FileDownload(
-    'subset_data.csv', label='Download subset CSV', button_type='primary', width=150, align=('center', 'center'))
-row = pn.Row(data_heading, download).servable(target='row')
-
-# q: how do I format this table nicely?
-# table = pn.pane.DataFrame(
-#     get_subset_data(pop_selector.value, group_selector.value,
-#                     measure_selector.value, income_type_selector.value).drop('Plot Population', axis=1), 
-#     index=False, sizing_mode="stretch_both", max_height=300, show_dimensions=True, justify='right').servable(
-#         target="table-area")
+    'subset_data.csv', label='Download subset_data.csv', button_type='primary', 
+    width=200, align=('center', 'center'))
 
 table = pn.widgets.Tabulator(
-    get_subset_data(pop_selector.value, group_selector.value,
-                    measure_selector.value, income_type_selector.value).drop('Plot Population', axis=1)).servable(
-        target="table-area")
+    get_subset_data(
+        pop_selector.value, group_selector.value, measure_selector.value, 
+        income_type_selector.value).drop('Plot Population', axis=1))
+
+
+pn.Tabs(mpl, pn.Column(download, table, name="Data")).servable(target='tabs')
+
 
 text = pn.pane.Markdown(
     "These results are not official statistics. They have been created for research purposes from the "
