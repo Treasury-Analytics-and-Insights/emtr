@@ -94,12 +94,14 @@ def do_plot(pop_type, groups, income_measure, income_type):
 
 title = pn.pane.Markdown('# Income Distribution Explorer \n\n *Best viewed full screen*').servable(target='title')
 
+# all the controls are in a widget box
+
 pop_selector = pn.widgets.Select(
-    name='Population Type', options = ['Household', 'Family']).servable(target='pop_type')
+    name='Population Type', options = ['Household', 'Family'])
 
 group_selector = pn.widgets.CheckBoxGroup(
     name = 'Group', options = groups[pop_selector.value], value=[groups[pop_selector.value][0]]
-    ).servable(target='groups')
+    )
 
 def update_groups(event):
     group_selector.options = groups[event.new]
@@ -109,16 +111,21 @@ pop_selector.param.watch(update_groups, 'value')
 
 measure_selector = pn.widgets.Select(
     name='Income Measure', options = data['Income Measure'].unique().tolist()
-    ).servable(target='income_measure')
+    )
 
 income_type_selector = pn.widgets.Select(
     name='Income Type', options = data['Income Type'].unique().tolist()
-).servable(target='income_type')
+)
 
 go_button = pn.widgets.Button(
     name='Go', button_type='success', width=100, align=('center', 'center'))
 
-pn.Row(pn.pane.Markdown("Subset and plot", align = ('end', 'center')), go_button).servable(target='go_button')
+go_button_row = pn.Row(pn.pane.Markdown("Subset and plot", align = ('end', 'center')), go_button)
+
+pn.WidgetBox(
+    pop_selector, group_selector, measure_selector, income_type_selector, 
+    go_button_row).servable(target='widget_box')
+
 
 fig = do_plot(
     pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
