@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import panel as pn
 
 
-#pn.extension(sizing_mode="stretch_width")
+pn.extension(sizing_mode="stretch_width")
 pn.extension('tabulator')
 
 pn.widgets.Tabulator.theme = 'bootstrap4'
@@ -93,7 +93,12 @@ def do_plot(pop_type, groups, income_measure, income_type):
     subset_data.drop('Plot Population', axis=1).to_csv('subset_data.csv', index=False)
     return fig
 
-title = pn.pane.Markdown('# Income Distribution Explorer \n\n *Best viewed full screen*').servable(target='title')
+title = pn.Column(
+    pn.Row(
+        pn.pane.Markdown('# Income Distribution Explorer', width=600),
+        pn.pane.Markdown('*Best viewed full screen*', align = ('end', 'end'))),
+        pn.layout.Divider()).servable(target='title')
+
 
 # all the controls are in a widget box
 

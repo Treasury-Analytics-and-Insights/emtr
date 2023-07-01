@@ -48,21 +48,19 @@
   <body>
     
     <section class="pyscript">
+        <div class="bk-root" id="title"></div>
+            
         <div class="row overflow-hidden" id="content">
             <div class="sidenav" id="sidebar">
                 <ul class="nav flex-column">
-                    <div class="bk-root" id="title"></div>
                     <div class="bk-root" id="widget_box"></div>
                     <div class="bk-root" id="text-area"></div>
                 </ul>
+            </div>
+            <div class="col mh-100 float-left" style="padding: 0" id="main">
+                <div class="bk-root" id="tabs"></div> 
+            </div>
         </div>
-        <div class="col mh-100 float-left" style="padding: 0" id="main">
-            <div class="bk-root" id="plot-area"></div>
-            <p><br></p>
-            <!-- scrollable table  -->
-            <div class="bk-root" id="tabs"></div> 
-        </div>
-        
     <py-config>
       packages = [
         "https://cdn.holoviz.org/panel/0.14.3/dist/wheels/bokeh-2.4.3-py3-none-any.whl",
@@ -70,7 +68,8 @@
       [[fetch]]
       files = ['./dist_exp_data.csv']
     </py-config>
-</section>
+    </section>
+    
     <py-script src = './main_panel.py'></py-script>
     
   </body>
