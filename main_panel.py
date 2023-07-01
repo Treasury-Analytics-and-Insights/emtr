@@ -8,6 +8,7 @@ pn.extension('tabulator')
 
 pn.widgets.Tabulator.theme = 'bootstrap4'
 pn.widgets.Tabulator.pagination = 'local'
+#pn.pane.Matplotlib.format = 'svg' doesn't work
 
 subplot_dims = {
     1: (1,1), 2: (1,2), 3: (1,3), 4: (2,2), 5: (2,3), 6: (2,3), 7: (2,4), 
