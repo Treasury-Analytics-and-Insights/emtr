@@ -71,6 +71,8 @@ def do_plot(pop_type, groups, income_measure, income_type):
             ax.set_xlim(0, max_pop)
             # format the x-axis ticks as thousands
             ax.xaxis.set_major_formatter(pop_tick_formatter)
+            # draw major grid lines on the x-axis in light grey
+            ax.xaxis.grid(True, color='lightgrey')
         else:
             ax.bar(plot_data['Income Group'], plot_data['Plot Population'], width=0.7)
             if i % ncols == 0:  
@@ -80,6 +82,8 @@ def do_plot(pop_type, groups, income_measure, income_type):
             ax.set_ylim(0, max_pop)
             # format the y-axis ticks as thousands
             ax.yaxis.set_major_formatter(pop_tick_formatter)
+            # draw major grid lines on the y-axis in light grey
+            ax.yaxis.grid(True, color='lightgrey')
 
         # format plot in a tufte style
         ax.spines['top'].set_visible(False)
@@ -97,7 +101,7 @@ title = pn.Column(
     pn.Row(
         pn.pane.Markdown('# Income Distribution Explorer', width=600),
         pn.pane.Markdown('*Best viewed full screen*', align = ('end', 'end'))),
-        pn.layout.Divider()).servable(target='title')
+    pn.layout.Divider()).servable(target='title')
 
 
 # all the controls are in a widget box
@@ -140,8 +144,7 @@ mpl = pn.pane.Matplotlib(
     fig, tight=True, 
     sizing_mode='scale_both', 
     max_width=1000,
-    max_height=800,
-    name="Plots"
+    max_height=800
     )
 
 download = pn.widgets.FileDownload(
@@ -151,20 +154,22 @@ download = pn.widgets.FileDownload(
 table = pn.widgets.Tabulator(
     get_subset_data(
         pop_selector.value, group_selector.value, measure_selector.value, 
-        income_type_selector.value).drop('Plot Population', axis=1))
+        income_type_selector.value).drop('Plot Population', axis=1), 
+        show_index=False, width=1000, height=600)
 
+with open('instructions.md', 'r') as f:
+    instructions = pn.pane.Markdown(f.read(), name = "Instructions", width=600)
 
-pn.Tabs(mpl, pn.Column(download, table, name="Data")).servable(target='tabs')
+with open('definitions.md', 'r') as f:
+    definitions = pn.pane.Markdown(f.read(), name = "Definitions", width=600)
 
+with open('idi_disclaimer.md', 'r') as f:
+    disclaimer = pn.pane.Markdown(f.read(), width=1000)
 
-text = pn.pane.Markdown(
-    "These results are not official statistics. They have been created for research purposes from the "
-    "Integrated Data Infrastructure (IDI) which is carefully managed by Stats NZ. For more information "
-    "about the IDI please visit https://www.stats.govt.nz/integrated-data/. The results are based in part "
-    "on tax data supplied by Inland Revenue to Stats NZ under the Tax Administration Act 1994 for "
-    "statistical purposes. Any discussion of data limitations or weaknesses is in the context of using "
-    "the IDI for statistical purposes, and is not related to the data’s ability to support Inland Revenue’s "
-    "core operational requirements.").servable(target='text-area')
+pn.Tabs(
+    pn.Column(mpl, disclaimer, name="Plots"), 
+    pn.Column(download, table, disclaimer, name="Data"), instructions, 
+    definitions).servable(target='tabs')
 
 def update(event):
     fig = do_plot(pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
