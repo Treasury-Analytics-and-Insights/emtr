@@ -45,11 +45,13 @@ def get_subset_data(pop_type, groups, income_measure, income_type):
     return subset_data
 
 def pop_tick_formatter(x, pos):
-    """Format the y-axis ticks as thousands."""
+    """Format axis ticks as thousands.  The pos argument is required by 
+    matplotlib but not used."""
     return '{:,.0f}'.format(x/1000) + 'k'   
 
 def do_plot(pop_type, groups, income_measure, income_type):
-    fig = plt.figure(figsize=get_figsize(len(groups)))
+    """Plot the income distribution for the selected population type, groups, income measure and income type."""
+    fig = plt.figure(figsize=get_figsize(len(groups)),)
     nrows, ncols = subplot_dims[len(groups)]
     subset_data = get_subset_data(pop_type, groups, income_measure, income_type)
     # get the max population for each group to set the axis limits
@@ -142,10 +144,11 @@ fig = do_plot(
 
 mpl = pn.pane.Matplotlib(
     fig, tight=True, 
-    sizing_mode='scale_both', 
+    sizing_mode='scale_width', 
     max_width=1000,
-    max_height=800
-    )
+    max_height=600,
+    height=600)
+    
 
 download = pn.widgets.FileDownload(
     'subset_data.csv', label='Download subset_data.csv', button_type='primary', 
@@ -161,15 +164,16 @@ with open('instructions.md', 'r') as f:
     instructions = pn.pane.Markdown(f.read(), name = "Instructions", width=600)
 
 with open('definitions.md', 'r') as f:
-    definitions = pn.pane.Markdown(f.read(), name = "Definitions", width=600)
+    definitions = pn.pane.Markdown(f.read(), name = "Definitions", width=800, height=600)
 
 with open('idi_disclaimer.md', 'r') as f:
-    disclaimer = pn.pane.Markdown(f.read(), width=1000)
+    disclaimer = pn.pane.Markdown(f.read(), width=300)
 
-pn.Tabs(
-    pn.Column(mpl, disclaimer, name="Plots"), 
-    pn.Column(download, table, disclaimer, name="Data"), instructions, 
-    definitions).servable(target='tabs')
+tabs = pn.Tabs(
+    pn.Row(mpl, disclaimer, name='Plots'), 
+    pn.Row(pn.Column(download, table), disclaimer, name="Data"), instructions, 
+    definitions, width = 1500).servable(target='tabs')
+
 
 def update(event):
     fig = do_plot(pop_selector.value, group_selector.value, measure_selector.value, income_type_selector.value)
