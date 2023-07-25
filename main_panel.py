@@ -5,8 +5,11 @@ from helpers import *
 
 pn.extension(sizing_mode="stretch_width")
 
-with open('test/input/TY2022.yaml', 'r', encoding='utf-8') as f:
-    parameters = yaml.safe_load(f)
+with open('parameters/TY2022.yaml', 'r', encoding='utf-8') as f:
+    sq_params = yaml.safe_load(f)
+
+with open('parameters/TY2022_reform.yaml', 'r', encoding='utf-8') as f:
+    reform_params = yaml.safe_load(f)
     
 title = pn.Column(
     pn.Row(
@@ -39,8 +42,8 @@ pn.WidgetBox(
 
 # Initial plot and table
 fig, table_data = fig_table_data(
-    parameters, hrly_wage_input.value, max_hours_input.value, accom_cost_input.value,
-    as_area_input.value, accom_type_input.value)
+    sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, 
+    accom_cost_input.value, as_area_input.value, accom_type_input.value)
 
 # The I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
@@ -61,8 +64,8 @@ pn.Tabs(plot_pane, instructions, definitions, width = 1500).servable(target='tab
 def update(event):
     """Update the plot and table when the Go button is clicked"""
     fig, table_data = fig_table_data(
-        parameters, hrly_wage_input.value, max_hours_input.value, accom_cost_input.value,
-        as_area_input.value, accom_type_input.value)
+        sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, 
+        accom_cost_input.value, as_area_input.value, accom_type_input.value)
     plot_pane.object=fig.to_html()
 
 
