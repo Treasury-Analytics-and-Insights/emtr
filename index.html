@@ -16,7 +16,7 @@
 
     <style>
         #sidebar {
-            width: 250px;
+            width: 300px;
         }
     </style>
 
@@ -46,12 +46,12 @@
 
         <py-config>
             packages = [
-            "https://cdn.holoviz.org/panel/0.14.3/dist/wheels/bokeh-2.4.3-py3-none-any.whl",
-            "matplotlib", "pandas", "panel==0.14.1"]
+                "https://cdn.holoviz.org/panel/0.14.3/dist/wheels/bokeh-2.4.3-py3-none-any.whl",
+                "pandas", "plotly", "panel==0.14.1"]
             [[fetch]]
             files = [
-            './dist_exp_data.csv', './idi_disclaimer.md', './instructions.md', 
-            './definitions.md', './helpers.py']
+                './test/input/TY2022.yaml', './instructions.md', './definitions.md', 
+                './helpers.py', './taxabate.py', './emtr.py']
         </py-config>
     </section>
 
