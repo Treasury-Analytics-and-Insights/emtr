@@ -28,10 +28,8 @@ def fig_table_data(
     output = pd.concat([sq_output, reform_output], axis=0)
     output['scenario'] = ['SQ']*len(sq_output) + ['Reform']*len(reform_output)
 
-    figs = {}
-    for var in RATE_VARS:
-        figs[var] = rate_plot(output, var)
-
+    figs = {var: rate_plot(output, var) for var in RATE_VARS}
+    
     output.to_csv('output.csv', index=False)
     return figs, output
 
