@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 
 import emtr
 
+RATE_VARS = ['emtr', 'replacement_rate', 'participation_tax_rate']
+
 def fig_table_data(
         sq_params, reform_params, hrly_wage, max_hours, accom_cost, as_area, 
         accom_type):
@@ -26,16 +28,19 @@ def fig_table_data(
     output = pd.concat([sq_output, reform_output], axis=0)
     output['scenario'] = ['SQ']*len(sq_output) + ['Reform']*len(reform_output)
 
-    fig = rate_plot(output, 'emtr')
+    figs = {}
+    for var in RATE_VARS:
+        figs[var] = rate_plot(output, var)
+
     output.to_csv('output.csv', index=False)
-    return fig, output
+    return figs, output
 
 
 def rate_plot(output, var_name):
     y_label = {
         'emtr': 'Effective marginal tax rate',
         'replacement_rate': 'Replacement rate',
-        'participaction_rate': 'Participation tax rate'
+        'participation_tax_rate': 'Participation tax rate'
     }[var_name]
 
     # subset to the relevant columns
@@ -74,10 +79,3 @@ def rate_plot(output, var_name):
         
     return fig
 
-
-def do_plotly(output):
-    fig = px.line(
-        output, x='hours1', y='emtr', color='scenario', 
-        title='Effective marginal tax rate')
-    return fig
- 
