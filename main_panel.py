@@ -25,22 +25,25 @@ accom_cost_input = pn.widgets.FloatInput(name = 'Weekly Accom.\n Cost', value = 
 as_area_input = pn.widgets.IntInput(name = 'AS Area', value = 1)
 accom_type_input = pn.widgets.Select(
     name = 'Accom.', options = ['Rent', 'Mortgage'], value = 'Rent')
-
+child_age_input = pn.widgets.TextInput(name = 'children_ages', value = "0, 5, 14")
 
 go_button = pn.widgets.Button(
     name='Calculate !', button_type='success', width=200, align=('center', 'center'))
 
 pn.WidgetBox(
     pn.Row(hrly_wage_input, max_hours_input),
-    pn.Row(accom_cost_input, as_area_input), accom_type_input,
+    pn.Row(accom_cost_input, as_area_input), accom_type_input, child_age_input,
     go_button, width = 300).servable(target='widget_box')
 
 # ------------------------------------------------------------------------------------
 
+child_ages = string_to_list_of_integers(child_age_input.value)
+
+
 # Initial plot and table
 fig, table_data = fig_table_data(
     parameters, hrly_wage_input.value, max_hours_input.value, accom_cost_input.value,
-    as_area_input.value, accom_type_input.value)
+    as_area_input.value, accom_type_input.value, child_ages)
 
 # The I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
@@ -58,11 +61,13 @@ pn.Tabs(plot_pane, instructions, definitions, width = 1500).servable(target='tab
 
 #-------------------------------------------------------------------------------------
 
+child_ages = string_to_list_of_integers(child_age_input.value)
+
 def update(event):
     """Update the plot and table when the Go button is clicked"""
     fig, table_data = fig_table_data(
         parameters, hrly_wage_input.value, max_hours_input.value, accom_cost_input.value,
-        as_area_input.value, accom_type_input.value)
+        as_area_input.value, accom_type_input.value, child_ages)
     plot_pane.object=fig.to_html()
 
 
