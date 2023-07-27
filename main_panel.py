@@ -61,10 +61,12 @@ pn.Tabs(plot_pane, instructions, definitions, width = 1500).servable(target='tab
 
 #-------------------------------------------------------------------------------------
 
-child_ages = string_to_list_of_integers(child_age_input.value)
+
 
 def update(event):
     """Update the plot and table when the Go button is clicked"""
+    child_ages = string_to_list_of_integers(child_age_input.value)
+    
     fig, table_data = fig_table_data(
         parameters, hrly_wage_input.value, max_hours_input.value, accom_cost_input.value,
         as_area_input.value, accom_type_input.value, child_ages)
