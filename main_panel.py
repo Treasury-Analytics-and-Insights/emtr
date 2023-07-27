@@ -28,22 +28,25 @@ accom_cost_input = pn.widgets.FloatInput(name = 'Weekly Accom.\n Cost', value = 
 as_area_input = pn.widgets.Select(name = 'AS Area', options = [1, 2, 3, 4], value = 1)
 accom_type_input = pn.widgets.Select(
     name = 'Accom.', options = ['Rent', 'Mortgage'], value = 'Rent')
-
+child_age_input = pn.widgets.TextInput(name = 'children_ages', value = "0, 5, 14")
 
 go_button = pn.widgets.Button(
     name='Calculate !', button_type='success', width=200, align=('center', 'center'))
 
 pn.WidgetBox(
     pn.Row(hrly_wage_input, max_hours_input),
-    pn.Row(accom_cost_input, as_area_input), accom_type_input,
+    pn.Row(accom_cost_input, as_area_input), accom_type_input, child_age_input,
     go_button, width = 300).servable(target='widget_box')
 
 # ------------------------------------------------------------------------------------
 
-# Initial plots and table
+child_ages = string_to_list_of_integers(child_age_input.value)
+
+
+# Initial plot and table
 figs, table_data = fig_table_data(
-    sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, 
-    accom_cost_input.value, as_area_input.value, accom_type_input.value)
+    sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, accom_cost_input.value,
+    as_area_input.value, accom_type_input.value, child_ages)
 
 # The I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
@@ -83,11 +86,15 @@ pn.Tabs(
 
 #-------------------------------------------------------------------------------------
 
+
+
 def update(event):
     """Update the plot and table when the Go button is clicked"""
+    child_ages = string_to_list_of_integers(child_age_input.value)
+
     figs, table_data = fig_table_data(
         sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, 
-        accom_cost_input.value, as_area_input.value, accom_type_input.value)
+        accom_cost_input.value, as_area_input.value, accom_type_input.value, child_ages)
     for key in figs:
         rate_panes[key].object=figs[key].to_html()
 
