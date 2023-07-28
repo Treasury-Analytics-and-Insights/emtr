@@ -15,7 +15,7 @@ with open('parameters/TY2022_reform.yaml', 'r', encoding='utf-8') as f:
     
 title = pn.Column(
     pn.Row(
-        pn.pane.Markdown('# Income Explorer Prototype', width=600),
+        pn.pane.Markdown('# Income Explorer Prototype (UNDER CONSTRUCTION !)', width=600),
         pn.pane.Markdown('*Best viewed full screen*', align = ('end', 'end'))),
     # add a horizontal line
     pn.layout.Divider()).servable(target='title')
@@ -43,7 +43,7 @@ accom_cost_input = pn.widgets.FloatInput(name = 'Weekly Accom.\n Cost', value = 
 as_area_input = pn.widgets.Select(name = 'AS Area', options = [1, 2, 3, 4], value = 1)
 accom_type_input = pn.widgets.Select(
     name = 'Accom.', options = ['Rent', 'Mortgage'], value = 'Rent')
-
+child_age_input = pn.widgets.TextInput(name = 'children_ages', value = "0, 5, 14")
 
 go_button = pn.widgets.Button(
     name='Calculate !', button_type='success', width=200, align=('center', 'center'))
@@ -55,7 +55,7 @@ pn.WidgetBox(
     pn.pane.Markdown('For help creating your own parameter file, see the "Example Parameters" tab'),
     pn.pane.Markdown('### Family specification'),
     pn.Row(hrly_wage_input, max_hours_input),
-    pn.Row(accom_cost_input, as_area_input), accom_type_input,
+    pn.Row(accom_cost_input, as_area_input), accom_type_input, child_age_input,
     go_button, width = 300).servable(target='widget_box')
 
 # ------------------------------------------------------------------------------------
@@ -70,11 +70,13 @@ params_tab = pn.WidgetBox(
         name = 'Example Parameters', width = 600, height = 500
 )
 
-
 # Initial plots and table
+child_ages = string_to_list_of_integers(child_age_input.value)
+
+# Initial plot and table
 figs, table_data = fig_table_data(
-    sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, 
-    accom_cost_input.value, as_area_input.value, accom_type_input.value)
+    sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, accom_cost_input.value,
+    as_area_input.value, accom_type_input.value, child_ages)
 
 # The I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
@@ -108,6 +110,8 @@ pn.Tabs(
 
 #-------------------------------------------------------------------------------------
 
+
+
 def update(event):
     """Update the plot and table when the Go button is clicked"""
     if sq_param_input.value:
@@ -116,9 +120,11 @@ def update(event):
     if reform_param_input.value:
         reform_params = yaml.safe_load(reform_param_input.value.decode('utf-8'))
 
+    child_ages = string_to_list_of_integers(child_age_input.value)
+
     figs, table_data = fig_table_data(
         sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, 
-        accom_cost_input.value, as_area_input.value, accom_type_input.value)
+        accom_cost_input.value, as_area_input.value, accom_type_input.value, child_ages)
     for key in figs:
         rate_panes[key].object=figs[key].to_html()
 

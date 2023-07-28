@@ -9,16 +9,16 @@ RATE_VARS = ['emtr', 'replacement_rate', 'participation_tax_rate']
 
 def fig_table_data(
         sq_params, reform_params, hrly_wage, max_hours, accom_cost, as_area, 
-        accom_type):
+        accom_type, children_ages):
     
     sq_output = emtr.emtr(
-        sq_params, partnered = False, wage1_hourly = hrly_wage, children_ages=[], 
+        sq_params, partnered = False, wage1_hourly = hrly_wage, children_ages=children_ages, 
         max_wage = max_hours*hrly_wage,
         as_accommodation_costs = accom_cost, as_area = as_area, 
         as_accommodation_rent = accom_type == 'Rent')
     
     reform_output = emtr.emtr(
-        reform_params, partnered = False, wage1_hourly = hrly_wage, children_ages=[], 
+        reform_params, partnered = False, wage1_hourly = hrly_wage, children_ages=children_ages, 
         max_wage = max_hours*hrly_wage,
         as_accommodation_costs = accom_cost, as_area = as_area, 
         as_accommodation_rent = accom_type == 'Rent')
@@ -77,3 +77,11 @@ def rate_plot(output, var_name):
         
     return fig
 
+def string_to_list_of_integers(s):
+    # Split the string at commas and remove any whitespace
+    integer_strings = s.split(',')
+
+    # Convert the integer strings to actual integers using list comprehension
+    integer_list = [int(num.strip()) for num in integer_strings]
+
+    return integer_list
