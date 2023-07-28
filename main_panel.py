@@ -1,3 +1,5 @@
+import os
+
 import panel as pn
 import yaml
 
@@ -21,6 +23,19 @@ title = pn.Column(
 
 # all the controls are in a widget box ------------------------------------------------
 
+example_param_file_select = pn.widgets.FileSelector(directory='parameters', name='Example parameters')
+example_param_file_download = pn.widgets.FileDownload(
+    file = 'parameters/TY2022.yaml', filename = 'TY2022.yaml', button_type = 'primary')
+
+def update_example_file_download(event):
+    example_param_file_download.file = example_param_file_select.value[0]
+    example_param_file_download.filename = os.path.basename(example_param_file_select.value[0])
+
+example_param_file_select.param.watch(update_example_file_download, 'value')
+
+sq_param_input = pn.widgets.FileInput(name = 'SQ')
+reform_param_input = pn.widgets.FileInput(name = 'Reform')
+
 hrly_wage_input = pn.widgets.FloatInput(name = 'Hourly Wage', value = 20)
 max_hours_input = pn.widgets.IntInput(name = 'Max Hours', value = 50)
 
@@ -34,11 +49,27 @@ go_button = pn.widgets.Button(
     name='Calculate !', button_type='success', width=200, align=('center', 'center'))
 
 pn.WidgetBox(
+    pn.pane.Markdown('### Policy parameters'),
+    pn.Row(pn.pane.Markdown('Status Quo:', width = 60),sq_param_input), 
+    pn.Row(pn.pane.Markdown("Reform:", width = 60), reform_param_input),
+    pn.pane.Markdown('For help creating your own parameter file, see the "Example Parameters" tab'),
+    pn.pane.Markdown('### Family specification'),
     pn.Row(hrly_wage_input, max_hours_input),
     pn.Row(accom_cost_input, as_area_input), accom_type_input,
     go_button, width = 300).servable(target='widget_box')
 
 # ------------------------------------------------------------------------------------
+
+# Params tab
+
+params_tab = pn.WidgetBox(
+    pn.pane.Markdown(
+        'To help create your own parameter file, choose one of the examples below to download, and edit '
+        'it in a text editor. Only the first file selected will be downloaded.'),
+        example_param_file_select, example_param_file_download, 
+        name = 'Example Parameters', width = 600, height = 500
+)
+
 
 # Initial plots and table
 figs, table_data = fig_table_data(
@@ -56,12 +87,6 @@ emtr_tab = pn.Column(
     pn.pane.Markdown('## Participation Tax Rate'), rate_panes['participation_tax_rate'],
     width = 1000, height=2000, name = 'EMTR')
 
-poverty_tab = pn.Column(
-    pn.pane.Markdown('## Equivalised Income \n\n Not done yet'),
-    pn.pane.Markdown('## BHC Poverty\n\nNot done yet'),
-    pn.pane.Markdown('## AHC Poverty\n\nNot done yet'),
-    width = 1000, height=2000, name = 'Poverty')
-
 composition_tab = pn.Column(
     pn.pane.Markdown('## Status Quo \n\n Not done yet'),
     pn.pane.Markdown('## Reform \n\n Not done yet'),
@@ -78,13 +103,19 @@ with open('definitions.md', 'r') as f:
         f.read(), name = "Definitions", width=800, height=600)
 
 pn.Tabs(
-    emtr_tab, poverty_tab, composition_tab, instructions, definitions, 
-    width = 1500, height=2000).servable(target='tabs')
+    params_tab, emtr_tab, composition_tab, instructions, definitions, 
+    width = 1500, height=2000, active=1).servable(target='tabs')
 
 #-------------------------------------------------------------------------------------
 
 def update(event):
     """Update the plot and table when the Go button is clicked"""
+    if sq_param_input.value:
+        # decode the bytes to a string, and then decode the yaml
+        sq_params = yaml.safe_load(sq_param_input.value.decode('utf-8'))
+    if reform_param_input.value:
+        reform_params = yaml.safe_load(reform_param_input.value.decode('utf-8'))
+
     figs, table_data = fig_table_data(
         sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, 
         accom_cost_input.value, as_area_input.value, accom_type_input.value)
