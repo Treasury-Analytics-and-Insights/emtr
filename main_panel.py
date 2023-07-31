@@ -109,7 +109,7 @@ figs, table_data = fig_table_data(
 
 # The I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
-rate_panes = {var: pn.pane.HTML(figs[var].to_html(), width=1000) for var in RATE_VARS}
+rate_panes = {var: pn.pane.HTML(figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
 
 emtr_tab = pn.Column(
     pn.pane.Markdown('## Net Income \n\n Not done yet'),
