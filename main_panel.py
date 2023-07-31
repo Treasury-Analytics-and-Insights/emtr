@@ -7,11 +7,11 @@ from helpers import *
 
 pn.extension(sizing_mode="stretch_width")
 
+# these are temporary - just to easily give us things to look at while we develop
 with open('parameters/TY2022.yaml', 'r', encoding='utf-8') as f:
-    sq_params = yaml.safe_load(f)
-
+    default_sq_params = yaml.safe_load(f)
 with open('parameters/TY2022_reform.yaml', 'r', encoding='utf-8') as f:
-    reform_params = yaml.safe_load(f)
+    default_reform_params = yaml.safe_load(f)
     
 title = pn.Column(
     pn.Row(
@@ -23,7 +23,8 @@ title = pn.Column(
 
 # all the controls are in a widget box ------------------------------------------------
 
-example_param_file_select = pn.widgets.FileSelector(directory='parameters', name='Example parameters')
+example_param_file_select = pn.widgets.FileSelector(
+    directory='parameters', name='Example parameters')
 example_param_file_download = pn.widgets.FileDownload(
     file = 'parameters/TY2022.yaml', filename = 'TY2022.yaml', button_type = 'primary')
 
@@ -45,17 +46,43 @@ accom_type_input = pn.widgets.Select(
     name = 'Accom.', options = ['Rent', 'Mortgage'], value = 'Rent')
 child_age_input = pn.widgets.TextInput(name = 'children_ages', value = "0, 5, 14")
 
-go_button = pn.widgets.Button(
-    name='Calculate !', button_type='success', width=200, align=('center', 'center'))
+#Add the "Partnered" toggle, which upon clicking, adds the controls for the second wage
+partner_toggle = pn.widgets.Toggle(
+    name = 'Partnered', button_type='primary', width=50, align=('start', 'center'))
+partner_hrly_wage_input = pn.widgets.FloatInput(name = 'Partner Hourly Wage', value = 20, disabled = True)
+partner_hours_worked_input = pn.widgets.IntInput(name = 'Partner Hours Worked', value = 0, disabled = True)
+partner_row = pn.Row(
+    partner_hrly_wage_input, partner_hours_worked_input, width = 300)
 
-pn.WidgetBox(
+# watch the partner toggle to enable/disable the partner controls
+def update_partner_controls(event):
+    if partner_toggle.value:
+        partner_hrly_wage_input.disabled = False
+        partner_hours_worked_input.disabled = False
+    else:
+        partner_hrly_wage_input.disabled = True
+        partner_hrly_wage_input.value = 20
+        partner_hours_worked_input.disabled = True 
+        partner_hours_worked_input.value = 0
+
+partner_toggle.param.watch(update_partner_controls, 'value')   
+
+
+go_button = pn.widgets.Button(
+    name='Calculate !', button_type='success', width=50, align=('start', 'center'))
+
+widget_box = pn.WidgetBox(
     pn.pane.Markdown('### Policy parameters'),
     pn.Row(pn.pane.Markdown('Status Quo:', width = 60),sq_param_input), 
     pn.Row(pn.pane.Markdown("Reform:", width = 60), reform_param_input),
     pn.pane.Markdown('For help creating your own parameter file, see the "Example Parameters" tab'),
     pn.pane.Markdown('### Family specification'),
     pn.Row(hrly_wage_input, max_hours_input),
-    pn.Row(accom_cost_input, as_area_input), accom_type_input, child_age_input,
+    pn.Row(accom_cost_input, as_area_input), 
+    accom_type_input, 
+    partner_toggle,
+    partner_row,
+    child_age_input,
     go_button, width = 300).servable(target='widget_box')
 
 # ------------------------------------------------------------------------------------
@@ -75,8 +102,10 @@ child_ages = string_to_list_of_integers(child_age_input.value)
 
 # Initial plot and table
 figs, table_data = fig_table_data(
-    sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, accom_cost_input.value,
-    as_area_input.value, accom_type_input.value, child_ages)
+    default_sq_params, default_reform_params, partner_toggle.value, hrly_wage_input.value, 
+    child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
+    accom_cost_input.value, accom_type_input.value, as_area_input.value,
+    max_hours_input.value)
 
 # The I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
@@ -117,14 +146,22 @@ def update(event):
     if sq_param_input.value:
         # decode the bytes to a string, and then decode the yaml
         sq_params = yaml.safe_load(sq_param_input.value.decode('utf-8'))
+    else:
+        sq_params = default_sq_params
     if reform_param_input.value:
         reform_params = yaml.safe_load(reform_param_input.value.decode('utf-8'))
+    else:
+        reform_params = default_reform_params
 
     child_ages = string_to_list_of_integers(child_age_input.value)
 
     figs, table_data = fig_table_data(
-        sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, 
-        accom_cost_input.value, as_area_input.value, accom_type_input.value, child_ages)
+        sq_params, reform_params, partner_toggle.value, hrly_wage_input.value, 
+        child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
+        accom_cost_input.value, accom_type_input.value, as_area_input.value, 
+        max_hours_input.value)
+    
+
     for key in figs:
         rate_panes[key].object=figs[key].to_html()
 
