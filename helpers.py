@@ -12,17 +12,16 @@ def fig_table_data(
         partner_hrly_wage, partner_hours, accom_cost, accom_type, as_area, 
         max_hours):
     
-    gross_wage2 = partner_hrly_wage * partner_hours
     accom_rent = accom_type == 'Rent'
     max_wage = max_hours*hrly_wage
 
     sq_output = emtr.emtr(
-        sq_params, partnered, hrly_wage, children_ages, gross_wage2, accom_cost, 
-        accom_rent, as_area, max_wage)
+        sq_params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
+        partner_hours, accom_cost, accom_rent, as_area, max_wage)
     
     reform_output = emtr.emtr(
-        reform_params, partnered, hrly_wage, children_ages, gross_wage2, accom_cost, 
-        accom_rent, as_area, max_wage)
+        reform_params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
+        partner_hours,  accom_cost, accom_rent, as_area, max_wage)
     
     # concatenate the two dataframes row-wise and add a column to identify the two
     # sets of results
