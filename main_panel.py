@@ -45,17 +45,43 @@ accom_type_input = pn.widgets.Select(
     name = 'Accom.', options = ['Rent', 'Mortgage'], value = 'Rent')
 child_age_input = pn.widgets.TextInput(name = 'children_ages', value = "0, 5, 14")
 
+#Add the "Partnered" toggle, which upon clicking, adds the controls for the second wage
+partner_toggle = pn.widgets.Toggle(
+    name = 'Partnered', button_type='primary', width=50, align=('center', 'center'))
+partner_hrly_wage_input = pn.widgets.FloatInput(name = 'Partner Hourly Wage', value = 20, disabled = True)
+partner_hours_worked_input = pn.widgets.IntInput(name = 'Partner Hours Worked', value = 0, disabled = True)
+partner_row = pn.Row(
+    partner_hrly_wage_input, partner_hours_worked_input, width = 300)
+
+# watch the partner toggle to enable/disable the partner controls
+def update_partner_controls(event):
+    if partner_toggle.value:
+        partner_hrly_wage_input.disabled = False
+        partner_hours_worked_input.disabled = False
+    else:
+        partner_hrly_wage_input.disabled = True
+        partner_hrly_wage_input.value = 20
+        partner_hours_worked_input.disabled = True 
+        partner_hours_worked_input.value = 0
+
+partner_toggle.param.watch(update_partner_controls, 'value')   
+
+
 go_button = pn.widgets.Button(
     name='Calculate !', button_type='success', width=200, align=('center', 'center'))
 
-pn.WidgetBox(
+widget_box = pn.WidgetBox(
     pn.pane.Markdown('### Policy parameters'),
     pn.Row(pn.pane.Markdown('Status Quo:', width = 60),sq_param_input), 
     pn.Row(pn.pane.Markdown("Reform:", width = 60), reform_param_input),
     pn.pane.Markdown('For help creating your own parameter file, see the "Example Parameters" tab'),
     pn.pane.Markdown('### Family specification'),
     pn.Row(hrly_wage_input, max_hours_input),
-    pn.Row(accom_cost_input, as_area_input), accom_type_input, child_age_input,
+    pn.Row(accom_cost_input, as_area_input), 
+    accom_type_input, 
+    partner_toggle,
+    partner_row,
+    child_age_input,
     go_button, width = 300).servable(target='widget_box')
 
 # ------------------------------------------------------------------------------------
@@ -75,8 +101,10 @@ child_ages = string_to_list_of_integers(child_age_input.value)
 
 # Initial plot and table
 figs, table_data = fig_table_data(
-    sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, accom_cost_input.value,
-    as_area_input.value, accom_type_input.value, child_ages)
+    sq_params, reform_params, partner_toggle.value, hrly_wage_input.value, 
+    child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
+    accom_cost_input.value, accom_type_input.value, as_area_input.value,
+    max_hours_input.value)
 
 # The I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
@@ -123,8 +151,11 @@ def update(event):
     child_ages = string_to_list_of_integers(child_age_input.value)
 
     figs, table_data = fig_table_data(
-        sq_params, reform_params, hrly_wage_input.value, max_hours_input.value, 
-        accom_cost_input.value, as_area_input.value, accom_type_input.value, child_ages)
+        sq_params, reform_params, partner_toggle.value, hrly_wage_input.value, 
+        child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
+        accom_cost_input.value, accom_type_input.value, as_area_input.value, 
+        max_hours_input.value)
+
     for key in figs:
         rate_panes[key].object=figs[key].to_html()
 
