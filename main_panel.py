@@ -40,6 +40,12 @@ reform_param_input = pn.widgets.FileInput(name = 'Reform')
 hrly_wage_input = pn.widgets.FloatInput(name = 'Hourly Wage', value = 20)
 max_hours_input = pn.widgets.IntInput(name = 'Max Hours', value = 50)
 
+sq_income_choice_input = pn.widgets.Select(
+    name = 'SQ Income Choice', options = IncomeChoice._member_names_, value = 'WfF')
+reform_income_choice_input = pn.widgets.Select(
+    name = 'Reform Income Choice', options = IncomeChoice._member_names_, value = 'WfF')
+
+
 accom_cost_input = pn.widgets.FloatInput(name = 'Weekly Accom.\n Cost', value = 450)
 as_area_input = pn.widgets.Select(name = 'AS Area', options = [1, 2, 3, 4], value = 1)
 accom_type_input = pn.widgets.Select(
@@ -49,7 +55,8 @@ child_age_input = pn.widgets.TextInput(name = 'children_ages', value = "0, 5, 14
 #Add the "Partnered" toggle, which upon clicking, adds the controls for the second wage
 partner_toggle = pn.widgets.Toggle(
     name = 'Partnered', button_type='primary', width=50, align=('start', 'center'))
-partner_hrly_wage_input = pn.widgets.FloatInput(name = 'Partner Hourly Wage', value = 20, disabled = True)
+partner_hrly_wage_input = pn.widgets.FloatInput(
+    name = 'Partner Hourly Wage', value = 20, disabled = True)
 partner_hours_worked_input = pn.widgets.IntInput(name = 'Partner Hours Worked', value = 0, disabled = True)
 partner_row = pn.Row(
     partner_hrly_wage_input, partner_hours_worked_input, width = 300)
@@ -78,6 +85,7 @@ widget_box = pn.WidgetBox(
     pn.pane.Markdown('For help creating your own parameter file, see the "Example Parameters" tab'),
     pn.pane.Markdown('### Family specification'),
     pn.Row(hrly_wage_input, max_hours_input),
+    pn.Row(sq_income_choice_input, reform_income_choice_input),
     pn.Row(accom_cost_input, as_area_input), 
     accom_type_input, 
     partner_toggle,
@@ -105,7 +113,8 @@ figs, table_data = fig_table_data(
     default_sq_params, default_reform_params, partner_toggle.value, hrly_wage_input.value, 
     child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
     accom_cost_input.value, accom_type_input.value, as_area_input.value,
-    max_hours_input.value)
+    max_hours_input.value, IncomeChoice[sq_income_choice_input.value], 
+    IncomeChoice[reform_income_choice_input.value])
 
 # The I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
@@ -159,7 +168,8 @@ def update(event):
         sq_params, reform_params, partner_toggle.value, hrly_wage_input.value, 
         child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
         accom_cost_input.value, accom_type_input.value, as_area_input.value, 
-        max_hours_input.value)
+        max_hours_input.value, IncomeChoice[sq_income_choice_input.value], 
+        IncomeChoice[reform_income_choice_input.value])
     
 
     for key in figs:
