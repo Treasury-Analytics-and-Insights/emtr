@@ -25,7 +25,7 @@ def emtr(
     if mftc_wep_scaling is None:
         mftc_wep_scaling = 1 / weeks_in_year
     else:
-        mftc_wep_scaling = mftc_wep_scaling / weeks_in_year
+        mftc_wep_scaling = mftc_wep_scaling.value / weeks_in_year
   
     # Pull AS MaxRates together
     as_max_rate_mortgage = np.array([

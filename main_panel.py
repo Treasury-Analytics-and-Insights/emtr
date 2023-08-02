@@ -44,12 +44,13 @@ sq_income_choice_input = pn.widgets.Select(
     name = 'SQ Income Choice', options = IncomeChoice._member_names_, value = 'WfF')
 reform_income_choice_input = pn.widgets.Select(
     name = 'Reform Income Choice', options = IncomeChoice._member_names_, value = 'WfF')
-
+wep_scaling_input = pn.widgets.Select(
+    name = 'WEP Scaling', options = WEPScaling._member_names_, value = 'Average')
 
 accom_cost_input = pn.widgets.FloatInput(name = 'Weekly Accom.\n Cost', value = 450)
 as_area_input = pn.widgets.Select(name = 'AS Area', options = [1, 2, 3, 4], value = 1)
 accom_type_input = pn.widgets.Select(
-    name = 'Accom.', options = ['Rent', 'Mortgage'], value = 'Rent')
+    name = 'Accom. Type', options = ['Rent', 'Mortgage'], value = 'Rent')
 child_age_input = pn.widgets.TextInput(name = 'children_ages', value = "0, 5, 14")
 
 #Add the "Partnered" toggle, which upon clicking, adds the controls for the second wage
@@ -87,7 +88,7 @@ widget_box = pn.WidgetBox(
     pn.Row(hrly_wage_input, max_hours_input),
     pn.Row(sq_income_choice_input, reform_income_choice_input),
     pn.Row(accom_cost_input, as_area_input), 
-    accom_type_input, 
+    pn.Row(accom_type_input, wep_scaling_input),
     partner_toggle,
     partner_row,
     child_age_input,
@@ -113,10 +114,11 @@ figs, table_data = fig_table_data(
     default_sq_params, default_reform_params, partner_toggle.value, hrly_wage_input.value, 
     child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
     accom_cost_input.value, accom_type_input.value, as_area_input.value,
-    max_hours_input.value, IncomeChoice[sq_income_choice_input.value], 
+    max_hours_input.value, WEPScaling[wep_scaling_input.value],
+    IncomeChoice[sq_income_choice_input.value], 
     IncomeChoice[reform_income_choice_input.value])
 
-# The I couldn't get a Plotly pane to update properly when the data changed.
+# I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
 rate_panes = {var: pn.pane.HTML(figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
 
@@ -168,7 +170,8 @@ def update(event):
         sq_params, reform_params, partner_toggle.value, hrly_wage_input.value, 
         child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
         accom_cost_input.value, accom_type_input.value, as_area_input.value, 
-        max_hours_input.value, IncomeChoice[sq_income_choice_input.value], 
+        max_hours_input.value, WEPScaling[wep_scaling_input.value],
+        IncomeChoice[sq_income_choice_input.value], 
         IncomeChoice[reform_income_choice_input.value])
     
 
