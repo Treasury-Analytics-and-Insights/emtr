@@ -10,14 +10,15 @@ RATE_VARS = ['emtr', 'replacement_rate', 'participation_tax_rate']
 
 IncomeChoice = Enum('IncomeChoice', 'WfF Ben Max')
 
-def emtr_with_income_choice(
-        params: dict, partnered, hrly_wage, children_ages, 
-        partner_hrly_wage, partner_hours, accom_cost, accom_rent, as_area, 
-        max_wage, income_choice: IncomeChoice):
+class WEPScaling(Enum):
+    Average = 1
+    Winter = 12/5
+    Summer = 0
+
+
+def emtr_with_income_choice(emtr_param_func, params: dict, income_choice: IncomeChoice):
     
-    wff_emtr = emtr.emtr(
-        params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
-        partner_hours, accom_cost, accom_rent, as_area, max_wage)
+    wff_emtr = emtr_param_func(params)
     if income_choice == IncomeChoice.WfF:
         return wff_emtr
     
@@ -25,9 +26,7 @@ def emtr_with_income_choice(
     ben_params = params.copy()
     ben_params['FamilyAssistance_IWTC_Rates_UpTo3Children'] = 0
     ben_params['FamilyAssistance_IWTC_Rates_SubsequentChildren'] = 0
-    ben_emtr = emtr.emtr(
-        ben_params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
-        partner_hours, accom_cost, accom_rent, as_area, max_wage)
+    ben_emtr = emtr_param_func(ben_params)
     if income_choice == IncomeChoice.Ben:
         return ben_emtr
     
@@ -42,19 +41,25 @@ def emtr_with_income_choice(
 def fig_table_data(
         sq_params: dict, reform_params: dict, partnered, hrly_wage, children_ages, 
         partner_hrly_wage, partner_hours, accom_cost, accom_type, as_area, 
-        max_hours, sq_income_choice: IncomeChoice, reform_income_choice: IncomeChoice):
+        max_hours, wep_scaling: WEPScaling, sq_income_choice: IncomeChoice, 
+        reform_income_choice: IncomeChoice):
     
     accom_rent = accom_type == 'Rent'
     max_wage = max_hours*hrly_wage
 
-    sq_output = emtr_with_income_choice(
-        sq_params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
-        partner_hours, accom_cost, accom_rent, as_area, max_wage, sq_income_choice)
+    # Make a sub-function of emtr that lets us vary the parameters while holding
+    # the others constant
+    def emtr_param_func(params):
+        return emtr.emtr(
+            params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
+            partner_hours, accom_cost, accom_rent, as_area, max_wage, 
+            mftc_wep_scaling=wep_scaling)
+
+    sq_output = emtr_with_income_choice(emtr_param_func, sq_params, sq_income_choice)
     
     reform_output = emtr_with_income_choice(
-        reform_params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
-        partner_hours, accom_cost, accom_rent, as_area, max_wage, reform_income_choice)
-    
+        emtr_param_func, reform_params, reform_income_choice)
+
     # concatenate the two dataframes row-wise and add a column to identify the two
     # sets of results
     output = pd.concat([sq_output, reform_output], axis=0)
