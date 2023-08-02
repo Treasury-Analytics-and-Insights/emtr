@@ -1,27 +1,59 @@
+from enum import Enum
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
 
 import emtr
 
 RATE_VARS = ['emtr', 'replacement_rate', 'participation_tax_rate']
 
+IncomeChoice = Enum('IncomeChoice', 'WfF Ben Max')
+
+def emtr_with_income_choice(
+        params: dict, partnered, hrly_wage, children_ages, 
+        partner_hrly_wage, partner_hours, accom_cost, accom_rent, as_area, 
+        max_wage, income_choice: IncomeChoice):
+    
+    wff_emtr = emtr.emtr(
+        params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
+        partner_hours, accom_cost, accom_rent, as_area, max_wage)
+    if income_choice == IncomeChoice.WfF:
+        return wff_emtr
+    
+    # disable IWTC
+    ben_params = params.copy()
+    ben_params['FamilyAssistance_IWTC_Rates_UpTo3Children'] = 0
+    ben_params['FamilyAssistance_IWTC_Rates_SubsequentChildren'] = 0
+    ben_emtr = emtr.emtr(
+        ben_params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
+        partner_hours, accom_cost, accom_rent, as_area, max_wage)
+    if income_choice == IncomeChoice.Ben:
+        return ben_emtr
+    
+    # for each row, choose the dataframe row with the highest net_income column
+    ben_indices = ben_emtr['net_income'] > wff_emtr['net_income']
+    max_emtr = wff_emtr.copy()
+    max_emtr.loc[ben_indices] = ben_emtr.loc[ben_indices]
+    return max_emtr
+
+
+
 def fig_table_data(
-        sq_params, reform_params, partnered, hrly_wage, children_ages, 
+        sq_params: dict, reform_params: dict, partnered, hrly_wage, children_ages, 
         partner_hrly_wage, partner_hours, accom_cost, accom_type, as_area, 
-        max_hours):
+        max_hours, sq_income_choice: IncomeChoice, reform_income_choice: IncomeChoice):
     
     accom_rent = accom_type == 'Rent'
     max_wage = max_hours*hrly_wage
 
-    sq_output = emtr.emtr(
+    sq_output = emtr_with_income_choice(
         sq_params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
-        partner_hours, accom_cost, accom_rent, as_area, max_wage)
+        partner_hours, accom_cost, accom_rent, as_area, max_wage, sq_income_choice)
     
-    reform_output = emtr.emtr(
+    reform_output = emtr_with_income_choice(
         reform_params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
-        partner_hours,  accom_cost, accom_rent, as_area, max_wage)
+        partner_hours, accom_cost, accom_rent, as_area, max_wage, reform_income_choice)
     
     # concatenate the two dataframes row-wise and add a column to identify the two
     # sets of results
