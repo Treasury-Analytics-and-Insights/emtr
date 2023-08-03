@@ -118,12 +118,21 @@ figs, table_data = fig_table_data(
     IncomeChoice[sq_income_choice_input.value], 
     IncomeChoice[reform_income_choice_input.value])
 
+figs2, table_data = fig_income_data(
+    default_sq_params, default_reform_params, partner_toggle.value, hrly_wage_input.value, 
+    child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
+    accom_cost_input.value, accom_type_input.value, as_area_input.value,
+    max_hours_input.value, WEPScaling[wep_scaling_input.value],
+    IncomeChoice[sq_income_choice_input.value], 
+    IncomeChoice[reform_income_choice_input.value])
+
 # I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
 rate_panes = {var: pn.pane.HTML(figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
+income_panes = {var: pn.pane.HTML(figs2[var].to_html(), width=1000, height=400) for var in INCOME_VARS}
 
 emtr_tab = pn.Column(
-    pn.pane.Markdown('## Net Income \n\n Not done yet'),
+    pn.pane.Markdown('## Net Income'), income_panes['net_income'],
     pn.pane.Markdown('## Effective Marginal Tax Rate'), rate_panes['emtr'],
     pn.pane.Markdown('## Replacement Rate'), rate_panes['replacement_rate'],
     pn.pane.Markdown('## Participation Tax Rate'), rate_panes['participation_tax_rate'],
@@ -174,9 +183,20 @@ def update(event):
         IncomeChoice[sq_income_choice_input.value], 
         IncomeChoice[reform_income_choice_input.value])
     
+    figs2, table_data = fig_income_data(
+        sq_params, reform_params, partner_toggle.value, hrly_wage_input.value, 
+        child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
+        accom_cost_input.value, accom_type_input.value, as_area_input.value, 
+        max_hours_input.value, WEPScaling[wep_scaling_input.value],
+        IncomeChoice[sq_income_choice_input.value], 
+        IncomeChoice[reform_income_choice_input.value])
+    
 
     for key in figs:
         rate_panes[key].object=figs[key].to_html()
+    
+    for key in figs2:
+        income_panes[key].object=figs2[key].to_html()
 
 
 go_button.on_click(update)
