@@ -124,7 +124,7 @@ rate_panes = {var: pn.pane.HTML(figs[var].to_html(), width=1000, height=400) for
 
 
 emtr_tab = pn.Column(
-    pn.pane.Markdown('## Net Income \n\n Not done yet'),
+    pn.pane.Markdown('## Net Income'), rate_panes['net_income'],
     pn.pane.Markdown('## Effective Marginal Tax Rate'), rate_panes['emtr'],
     pn.pane.Markdown('## Replacement Rate'), rate_panes['replacement_rate'],
     pn.pane.Markdown('## Participation Tax Rate'), rate_panes['participation_tax_rate'],

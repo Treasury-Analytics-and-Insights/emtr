@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 
 import emtr
 
-RATE_VARS = ['emtr', 'replacement_rate', 'participation_tax_rate']
+RATE_VARS = ['net_income', 'emtr', 'replacement_rate', 'participation_tax_rate']
 
 IncomeChoice = Enum('IncomeChoice', 'WfF Ben Max')
 
@@ -59,6 +59,9 @@ def fig_table_data(
     
     reform_output = emtr_with_income_choice(
         emtr_param_func, reform_params, reform_income_choice)
+    
+    sq_output['net_income'] = sq_output['net_income'] *52
+    reform_output['net_income'] = reform_output['net_income'] *52
 
     # concatenate the two dataframes row-wise and add a column to identify the two
     # sets of results
@@ -70,9 +73,9 @@ def fig_table_data(
     output.to_csv('output.csv', index=False)
     return figs, output
 
-
 def rate_plot(output, var_name):
     y_label = {
+        'net_income': 'Net Income',
         'emtr': 'Effective marginal tax rate',
         'replacement_rate': 'Replacement rate',
         'participation_tax_rate': 'Participation tax rate'
@@ -82,7 +85,8 @@ def rate_plot(output, var_name):
     plot_data = output[['gross_wage1_annual', 'hours1', var_name, 'scenario']].copy()
 
     # clip the values to the range 0-1.1
-    plot_data[var_name] = plot_data[var_name].clip(lower=0, upper=1.1)
+    if var_name != 'net_income':
+        plot_data[var_name] = plot_data[var_name].clip(lower=0, upper=1.1)
 
     fig = px.line(
         plot_data, x='gross_wage1_annual', y=var_name, color='scenario', 
@@ -111,7 +115,14 @@ def rate_plot(output, var_name):
             'automargin': True, 'showline': True, 'mirror': True},
         legend={'x': 100, 'y': 0.5},
         hovermode="x")
-        
+    
+    if var_name == 'net_income':
+        fig.update_layout(
+            yaxis={
+                'title': "Income ($)", 'tickformat': "$", 
+                'automargin': True, 'showline': True, 'mirror': True},
+                )
+            
     return fig
 
 def string_to_list_of_integers(s):
