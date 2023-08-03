@@ -387,4 +387,5 @@ def emtr(
         'net_income': net_income, 'emtr': emtr, 'replacement_rate': replacement_rate,
         'participation_tax_rate': participation_tax_rate, 'bhc_depth': bhc_depth,
         'ahc_net_income': ahc_net_income, 'ahc_depth': ahc_depth, 'eq_factor': eq_factor,
-        'bhc_unequiv_poverty_line': bhc_unequiv_poverty_line, 'ahc_unequiv_poverty_line': ahc_unequiv_poverty_line})
+        'bhc_unequiv_poverty_line': bhc_unequiv_poverty_line, 'ahc_unequiv_poverty_line': ahc_unequiv_poverty_line,
+        'ftc_abated': ftc_abated, 'iwtc_abated': iwtc_abated, 'bs_total': bs_total})
