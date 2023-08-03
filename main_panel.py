@@ -79,6 +79,10 @@ partner_toggle.param.watch(update_partner_controls, 'value')
 go_button = pn.widgets.Button(
     name='Calculate !', button_type='success', width=50, align=('start', 'center'))
 
+data_download = pn.widgets.FileDownload(
+    'output.csv', label='Download output.csv', button_type='primary', 
+    width=200, align=('start', 'center'))
+
 widget_box = pn.WidgetBox(
     pn.pane.Markdown('### Policy parameters'),
     pn.Row(pn.pane.Markdown('Status Quo:', width = 60),sq_param_input), 
@@ -89,10 +93,9 @@ widget_box = pn.WidgetBox(
     pn.Row(sq_income_choice_input, reform_income_choice_input),
     pn.Row(accom_cost_input, as_area_input), 
     pn.Row(accom_type_input, wep_scaling_input),
-    partner_toggle,
-    partner_row,
-    child_age_input,
-    go_button, width = 300).servable(target='widget_box')
+    partner_toggle, partner_row, child_age_input,
+    go_button, data_download,
+    width = 300).servable(target='widget_box')
 
 # ------------------------------------------------------------------------------------
 
