@@ -1,0 +1,117 @@
+modelyear: {{ tawa_param.modelyear }} # Tax year that you are modelling
+ACC_LevyRate: {{ tawa_param.ACC_LevyRate }} # Rate is specified with each forecast update
+ACC_MaxLeviableIncome: {{ tawa_param.ACC_MaxLeviableIncome }} # Specified with each forecast update
+Accommodation_AbatementRate: {{ tawa_param.Accommodation_AbatementRate }} # "Abatement rate for AS payments (currently 0.25, so loose 25c for every extra dollar earned)"
+
+# Accommodation Supplement rate settings AS = min[MaxRate, (PaymentPercentage) * (HousingCosts – (BaseRateThreshold)*BaseIncome)].
+Accommodation_BaseRateThreshold_Mortgage: {{ tawa_param.Accommodation_BaseRateThreshold_Mortgage }}
+Accommodation_BaseRateThreshold_Rent: {{ tawa_param.Accommodation_BaseRateThreshold_Rent }}
+{% for key, value in tawa_param.items() if key.startswith('Accommodation_MaxRate') %}
+{{ key }}: {{ value }}
+{% endfor %}
+Accommodation_PaymentPercentage: {{ tawa_param.Accommodation_PaymentPercentage }}
+
+# Job Seeker Support
+Benefits_JSS_AbatementScale:
+  thresholds:
+{% for threshold in tawa_param.Benefits_JSS_AbatementScale.thresholds %}
+    - {{ threshold }}
+{% endfor %}
+  rates:
+{% for rate in tawa_param.Benefits_JSS_AbatementScale.rates %}
+    - {{ rate }}
+{% endfor %}
+Benefits_JSS_CoupleAbatementScale:
+  thresholds:
+{% for threshold in tawa_param.Benefits_JSS_CoupleAbatementScale.thresholds %}
+    - {{ threshold }}
+{% endfor %}
+  rates:
+{% for rate in tawa_param.Benefits_JSS_CoupleAbatementScale.rates %}
+    - {{ rate }}
+{% endfor %}
+Benefits_JSS_Rate_Couple: {{ tawa_param.Benefits_JSS_Rate_Couple }}
+Benefits_JSS_Rate_CoupleParent: {{ tawa_param.Benefits_JSS_Rate_CoupleParent }}
+Benefits_JSS_Rate_Single: {{ tawa_param.Benefits_JSS_Rate_Single }}
+Benefits_JSS_Rate_SoleParent: {{ tawa_param.Benefits_JSS_Rate_SoleParent }}
+
+# Sole Parent Support
+Benefits_SPS_AbatementScale:
+  thresholds:
+{% for threshold in tawa_param.Benefits_SPS_AbatementScale.thresholds %}
+    - {{ threshold }}
+{% endfor %}
+  rates:
+{% for rate in tawa_param.Benefits_SPS_AbatementScale.rates %}
+    - {{ rate }}
+{% endfor %}
+Benefits_SPS_Rate: {{ tawa_param.Benefits_SPS_Rate }}
+Benefits_Entitlement_Age_SPS_ChildLowerBound: {{ tawa_param.Benefits_Entitlement_Age_SPS_ChildLowerBound }} # Age threshold for the youngest child such that an individual is eligible for SPS
+
+# Winter energy payment amount. Given to families receiving a core benefit or NZ super. 
+Benefits_WinterEnergy_Rates_Single: {{ tawa_param.Benefits_WinterEnergy_Rates_Single }}
+Benefits_WinterEnergy_Rates_CoupleOrDeps: {{ tawa_param.Benefits_WinterEnergy_Rates_CoupleOrDeps }}
+
+# "Living alone payment:  given to single people receiving a core benefit and not sharing accommodation with another adult "
+Benefits_LivingAlonePayment_Single: 0
+Benefits_LivingAlonePayment_SoleParent: 0
+
+# "Working for families abatement, applied in the order of FTC, IWTC"
+FamilyAssistance_Abatement_AbatementScale:
+  thresholds:
+{% for threshold in tawa_param.FamilyAssistance_Abatement_AbatementScale.thresholds %}
+    - {{ threshold }}
+{% endfor %}
+  rates:
+{% for rate in tawa_param.FamilyAssistance_Abatement_AbatementScale.rates %}
+    - {{ rate }}
+{% endfor %}
+FamilyAssistance_FTC_Rates_FirstChild: {{ tawa_param.FamilyAssistance_FTC_Rates_FirstChild0to15 }}
+FamilyAssistance_FTC_Rates_SubsequentChild: {{ tawa_param.FamilyAssistance_FTC_Rates_FirstChild16to18 if tawa_param.UseBenefitEntitlementForDependents == 1 else tawa_param.FamilyAssistance_FTC_Rates_SecondChild0to12 }}
+FamilyAssistance_IWTC_Rates_UpTo3Children: {{ tawa_param.FamilyAssistance_IWTC_Rates_UpTo3Children }}
+FamilyAssistance_IWTC_Rates_SubsequentChildren: {{ tawa_param.FamilyAssistance_IWTC_Rates_SubsequentChildren }}
+FamilyAssistance_IWTC_Eligibility: {{ tawa_param.UseBenefitEntitlement }} # "Eligibilty test for In work tax credit. 0: Status quo, based on hours worked and not given to beneficiaries. 1: Income test, option to give to beneficiaries (see below), 2: Phase in amount of IWTC base on phase in scales"
+FamilyAssistance_FullTimeWorkingHours_Couple: {{ tawa_param.FamilyAssistance_FullTimeWorkingHours_Couple }} # "Number of hours for a couple to be classified as working full time, for IWTC and MFTC eligability  (FamilyAssistance_IWTC_Eligibility must be set to 0)"
+FamilyAssistance_FullTimeWorkingHours_Single: {{ tawa_param.FamilyAssistance_FullTimeWorkingHours_Single }} # "Number of hours for a single parent to be classified as working full time, for IWTC and MFTC eligability (FamilyAssistance_IWTC_Eligibility must be set to 0)"
+FamilyAssistance_IWTC_IncomeThreshold_Single: {{ tawa_param.FamilyAssistance_IWTC_IncomeThreshold }} # Income test for a single parent to receive IWTC and MFTC (FamilyAssistance_IWTC_Eligibility must be set to 1)
+FamilyAssistance_IWTC_IncomeThreshold_Couple: {{ tawa_param.FamilyAssistance_IWTC_IncomeThreshold }} # Income test for a couple to receive IWTC and MFTC (FamilyAssistance_IWTC_Eligibility must be set to 1)
+FamilyAssistance_IWTC_ToBeneficiaries: {{ tawa_param.UseBenefitEntitlementForTMBExcluded }} # Determines if beneficiaries can receive IWTC (FamilyAssistance_IWTC_Eligibility must be set to 1)
+FamilyAssistance_MFTC_Rates_MinimumIncome: {{ tawa_param.FamilyAssistance_MFTC_Rates_MinimumIncome }} # "Minimum income that ensures that a family is better off in work than on benefit, the minimum family tax credit bring their income up to this amount. Value is determined using IRD calculator"
+
+# Abatement scale for Best Start payments (however best start payments for 0 year olds are not abated)
+FamilyAssistance_BestStart_Abatement_AbatementScale: 
+  thresholds:
+{% for threshold in tawa_param.FamilyAssistance_BestStart_Abatement_AbatementScale.thresholds %}
+    - {{ threshold }}
+{% endfor %}
+  rates:
+{% for rate in tawa_param.FamilyAssistance_BestStart_Abatement_AbatementScale.rates %}
+    - {{ rate }}
+{% endfor %}
+FamilyAssistance_BestStart_Rates_Age0: {{ tawa_param.FamilyAssistance_BestStart_Rates_Age0 }} # Best start rate for a 0 year old
+FamilyAssistance_BestStart_Rates_Age1or2: {{ tawa_param.FamilyAssistance_BestStart_Rates_Age1or2 }} # Best start rate for 1 and 2 year olds
+
+# Independent earner tax credit, abatement scale
+IETC_AbatementScale:
+  thresholds:
+{% for threshold in tawa_param.IETC_AbatementScale.thresholds %}
+    - {{ threshold }}
+{% endfor %}
+  rates:
+{% for rate in tawa_param.IETC_AbatementScale.rates %}
+    - {{ rate }}
+{% endfor %}
+
+IETC_MinimalIncome: {{ tawa_param.IETC_MinimalIncome }} # "Independent earner tax credit, minimum bound on earned income to determine eligability"
+IETC_PerYear: {{ tawa_param.IETC_PerYear }} # "Independent earner tax credit, amount for each year"
+IETC_OnlyFamiliesWithoutChildren: 0 # "Indepdenent earner tax credit, 0: give to everyone, 1: only give to families without children"
+
+Tax_BaseScale:
+  thresholds:
+{% for threshold in tawa_param.Tax_BaseScale.thresholds %}
+    - {{ threshold }}
+{% endfor %}
+  rates:
+{% for rate in tawa_param.Tax_BaseScale.rates %}
+    - {{ rate }}
+{% endfor %}

@@ -8,9 +8,9 @@ from helpers import *
 pn.extension(sizing_mode="stretch_width")
 
 # these are temporary - just to easily give us things to look at while we develop
-with open('parameters/TY2022.yaml', 'r', encoding='utf-8') as f:
+with open('parameters/TY22_BEFU23.yaml', 'r', encoding='utf-8') as f:
     default_sq_params = yaml.safe_load(f)
-with open('parameters/TY2022_reform.yaml', 'r', encoding='utf-8') as f:
+with open('parameters/TY23_BEFU23.yaml', 'r', encoding='utf-8') as f:
     default_reform_params = yaml.safe_load(f)
     
 title = pn.Column(
@@ -26,7 +26,7 @@ title = pn.Column(
 example_param_file_select = pn.widgets.FileSelector(
     directory='parameters', name='Example parameters')
 example_param_file_download = pn.widgets.FileDownload(
-    file = 'parameters/TY2022.yaml', filename = 'TY2022.yaml', button_type = 'primary')
+    file = 'parameters/TY23_BEFU23.yaml', filename = 'TY23_BEFU23.yaml', button_type = 'primary')
 
 def update_example_file_download(event):
     example_param_file_download.file = example_param_file_select.value[0]
@@ -158,13 +158,8 @@ with open('instructions.md', 'r') as f:
     instructions = pn.pane.Markdown(
         f.read(), name = "Instructions", width=600)
 
-# Definitions tab
-with open('definitions.md', 'r') as f:
-    definitions = pn.pane.Markdown(
-        f.read(), name = "Definitions", width=800, height=600)
-
 pn.Tabs(
-    params_tab, emtr_tab, composition_tab, instructions, definitions, 
+    params_tab, emtr_tab, composition_tab, instructions, 
     width = 1500, height=2000, active=1).servable(target='tabs')
 
 #-------------------------------------------------------------------------------------
