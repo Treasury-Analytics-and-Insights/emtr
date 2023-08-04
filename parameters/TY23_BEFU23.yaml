@@ -1,0 +1,182 @@
+modelyear: 2023.0 # Tax year that you are modelling
+ACC_LevyRate: 0.0146 # Rate is specified with each forecast update
+ACC_MaxLeviableIncome: 136544.0 # Specified with each forecast update
+Accommodation_AbatementRate: 0.25 # "Abatement rate for AS payments (currently 0.25, so loose 25c for every extra dollar earned)"
+
+# Accommodation Supplement rate settings AS = min[MaxRate, (PaymentPercentage) * (HousingCosts – (BaseRateThreshold)*BaseIncome)].
+Accommodation_BaseRateThreshold_Mortgage: 0.3
+Accommodation_BaseRateThreshold_Rent: 0.25
+
+Accommodation_MaxRate_CoupleDeps_Single2_Deps_Area1: 305.0
+
+Accommodation_MaxRate_CoupleDeps_Single2_Deps_Area2: 220.0
+
+Accommodation_MaxRate_CoupleDeps_Single2_Deps_Area3: 160.0
+
+Accommodation_MaxRate_CoupleDeps_Single2_Deps_Area4: 120.0
+
+Accommodation_MaxRate_CoupleNoDeps_Single1Dep_Area1: 235.0
+
+Accommodation_MaxRate_CoupleNoDeps_Single1Dep_Area2: 155.0
+
+Accommodation_MaxRate_CoupleNoDeps_Single1Dep_Area3: 105.0
+
+Accommodation_MaxRate_CoupleNoDeps_Single1Dep_Area4: 80.0
+
+Accommodation_MaxRate_SingleNoDeps_Area1: 165.0
+
+Accommodation_MaxRate_SingleNoDeps_Area2: 105.0
+
+Accommodation_MaxRate_SingleNoDeps_Area3: 80.0
+
+Accommodation_MaxRate_SingleNoDeps_Area4: 70.0
+
+Accommodation_PaymentPercentage: 0.7
+
+# Job Seeker Support
+Benefits_JSS_AbatementScale:
+  thresholds:
+
+    - 0.0
+
+    - 8352.0
+
+  rates:
+
+    - 0.0
+
+    - 0.7
+
+Benefits_JSS_CoupleAbatementScale:
+  thresholds:
+
+    - 0.0
+
+    - 8352.0
+
+  rates:
+
+    - 0.0
+
+    - 0.35
+
+Benefits_JSS_Rate_Couple: 268.0
+Benefits_JSS_Rate_CoupleParent: 283.0
+Benefits_JSS_Rate_Single: 315.0
+Benefits_JSS_Rate_SoleParent: 440.96
+
+# Sole Parent Support
+Benefits_SPS_AbatementScale:
+  thresholds:
+
+    - 0.0
+
+    - 8352.0
+
+    - 13050.0
+
+  rates:
+
+    - 0.0
+
+    - 0.3
+
+    - 0.7
+
+Benefits_SPS_Rate: 440.96
+Benefits_Entitlement_Age_SPS_ChildLowerBound: 14.0 # Age threshold for the youngest child such that an individual is eligible for SPS
+
+# Winter energy payment amount. Given to families receiving a core benefit or NZ super. 
+Benefits_WinterEnergy_Rates_Single: 450.0
+Benefits_WinterEnergy_Rates_CoupleOrDeps: 700.0
+
+# "Living alone payment:  given to single people receiving a core benefit and not sharing accommodation with another adult "
+Benefits_LivingAlonePayment_Single: 0
+Benefits_LivingAlonePayment_SoleParent: 0
+
+# "Working for families abatement, applied in the order of FTC, IWTC"
+FamilyAssistance_Abatement_AbatementScale:
+  thresholds:
+
+    - 0.0
+
+    - 42700.0
+
+  rates:
+
+    - 0.0
+
+    - 0.27
+
+FamilyAssistance_FTC_Rates_FirstChild: 6642.0
+FamilyAssistance_FTC_Rates_SubsequentChild: 5412.0
+FamilyAssistance_IWTC_Rates_UpTo3Children: 3770.0
+FamilyAssistance_IWTC_Rates_SubsequentChildren: 780.0
+FamilyAssistance_IWTC_Eligibility: 1.0 # "Eligibilty test for In work tax credit. 0: Status quo, based on hours worked and not given to beneficiaries. 1: Income test, option to give to beneficiaries (see below), 2: Phase in amount of IWTC base on phase in scales"
+FamilyAssistance_FullTimeWorkingHours_Couple: 30.0 # "Number of hours for a couple to be classified as working full time, for IWTC and MFTC eligability  (FamilyAssistance_IWTC_Eligibility must be set to 0)"
+FamilyAssistance_FullTimeWorkingHours_Single: 20.0 # "Number of hours for a single parent to be classified as working full time, for IWTC and MFTC eligability (FamilyAssistance_IWTC_Eligibility must be set to 0)"
+FamilyAssistance_IWTC_IncomeThreshold_Single: 1106.64 # Income test for a single parent to receive IWTC and MFTC (FamilyAssistance_IWTC_Eligibility must be set to 1)
+FamilyAssistance_IWTC_IncomeThreshold_Couple: 1106.64 # Income test for a couple to receive IWTC and MFTC (FamilyAssistance_IWTC_Eligibility must be set to 1)
+FamilyAssistance_IWTC_ToBeneficiaries: 2.0 # Determines if beneficiaries can receive IWTC (FamilyAssistance_IWTC_Eligibility must be set to 1)
+FamilyAssistance_MFTC_Rates_MinimumIncome: 32864.0 # "Minimum income that ensures that a family is better off in work than on benefit, the minimum family tax credit bring their income up to this amount. Value is determined using IRD calculator"
+
+# Abatement scale for Best Start payments (however best start payments for 0 year olds are not abated)
+FamilyAssistance_BestStart_Abatement_AbatementScale: 
+  thresholds:
+
+    - 0.0
+
+    - 79000.0
+
+  rates:
+
+    - 0.0
+
+    - 0.21
+
+FamilyAssistance_BestStart_Rates_Age0: 3388.0 # Best start rate for a 0 year old
+FamilyAssistance_BestStart_Rates_Age1or2: 3388.0 # Best start rate for 1 and 2 year olds
+
+# Independent earner tax credit, abatement scale
+IETC_AbatementScale:
+  thresholds:
+
+    - 0.0
+
+    - 44000.0
+
+  rates:
+
+    - 0.0
+
+    - 0.13
+
+
+IETC_MinimalIncome: 24000.0 # "Independent earner tax credit, minimum bound on earned income to determine eligability"
+IETC_PerYear: 520.0 # "Independent earner tax credit, amount for each year"
+IETC_OnlyFamiliesWithoutChildren: 0 # "Indepdenent earner tax credit, 0: give to everyone, 1: only give to families without children"
+
+Tax_BaseScale:
+  thresholds:
+
+    - 0.0
+
+    - 14000.0
+
+    - 48000.0
+
+    - 70000.0
+
+    - 180000.0
+
+  rates:
+
+    - 0.105
+
+    - 0.175
+
+    - 0.3
+
+    - 0.33
+
+    - 0.39

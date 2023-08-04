@@ -1,0 +1,174 @@
+modelyear: 2025.0
+ACC_LevyRate: 0.016
+ACC_MaxLeviableIncome: 142283.0
+Accommodation_AbatementRate: 0.25
+Accommodation_BaseRateThreshold_Mortgage: 0.3
+Accommodation_BaseRateThreshold_Rent: 0.25
+Accommodation_ChildExpenseWeight: 0.5
+Accommodation_MaxRate_CoupleDeps_Single2_Deps_Area1: 305.0
+Accommodation_MaxRate_CoupleDeps_Single2_Deps_Area2: 220.0
+Accommodation_MaxRate_CoupleDeps_Single2_Deps_Area3: 160.0
+Accommodation_MaxRate_CoupleDeps_Single2_Deps_Area4: 120.0
+Accommodation_MaxRate_CoupleNoDeps_Single1Dep_Area1: 235.0
+Accommodation_MaxRate_CoupleNoDeps_Single1Dep_Area2: 155.0
+Accommodation_MaxRate_CoupleNoDeps_Single1Dep_Area3: 105.0
+Accommodation_MaxRate_CoupleNoDeps_Single1Dep_Area4: 80.0
+Accommodation_MaxRate_SingleNoDeps_Area1: 165.0
+Accommodation_MaxRate_SingleNoDeps_Area2: 105.0
+Accommodation_MaxRate_SingleNoDeps_Area3: 80.0
+Accommodation_MaxRate_SingleNoDeps_Area4: 70.0
+Accommodation_NZSIncomeLimit_Couple: 1019.6
+Accommodation_NZSIncomeLimit_Single: 701.96
+Accommodation_NZSIncomeLimit_SoleParent1Dep: 851.8
+Accommodation_NZSIncomeLimit_SoleParent2_Deps: 897.42
+Accommodation_PaymentPercentage: 0.7
+Behaviour_Earnings_Add_WageSalary_Principal: 0.0
+Behaviour_Earnings_Add_WageSalary_Spouse: 0.0
+Benefits_Entitlement_Age_SPS_ChildLowerBound: 14.0
+Benefits_JSS_AbatementScale:
+  thresholds:
+  - 0.0
+  - 8352.0
+  rates:
+  - 0.0
+  - 0.7
+Benefits_JSS_CoupleAbatementScale:
+  thresholds:
+  - 0.0
+  - 8352.0
+  rates:
+  - 0.0
+  - 0.35
+Benefits_JSS_Rate_Couple: 301.01
+Benefits_JSS_Rate_CoupleParent: 317.86
+Benefits_JSS_Rate_Single: 353.8
+Benefits_JSS_Rate_SingleAtHome: 262.55
+Benefits_JSS_Rate_SingleYoung: 308.17
+Benefits_JSS_Rate_SoleParent: 495.27
+Benefits_SLP_AbatementScale:
+  thresholds:
+  - 0.0
+  - 8352.0
+  - 13050.0
+  rates:
+  - 0.0
+  - 0.3
+  - 0.7
+Benefits_SLP_CoupleAbatementScale:
+  thresholds:
+  - 0.0
+  - 8352.0
+  - 13050.0
+  rates:
+  - 0.0
+  - 0.15
+  - 0.35
+Benefits_SLP_Rate_Couple: 342.57
+Benefits_SLP_Rate_CoupleParent: 359.42
+Benefits_SLP_Rate_Single: 403.22
+Benefits_SLP_Rate_SingleYoung: 337.95
+Benefits_SLP_Rate_SoleParent: 552.67
+Benefits_SPS_AbatementScale:
+  thresholds:
+  - 0.0
+  - 8352.0
+  - 13050.0
+  rates:
+  - 0.0
+  - 0.3
+  - 0.7
+Benefits_SPS_Rate: 495.27
+Benefits_WinterEnergy_Rates_Single: 450.0
+Benefits_WinterEnergy_Rates_CoupleOrDeps: 700.0
+Benefits_CostOfLiving_Rate: 0.0
+Benefits_CostOfLiving_Threshold: 0.0
+Benefits_CostOfLiving_Periods:
+- 10.0
+- 12.0
+- 14.0
+FamilyAssistance_Abatement_AbatementScale:
+  thresholds:
+  - 0.0
+  - 42700.0
+  rates:
+  - 0.0
+  - 0.27
+FamilyAssistance_FTC_Rates_FirstChild0to15: 7503.0
+FamilyAssistance_FTC_Rates_FirstChild16to18: 7503.0
+FamilyAssistance_FTC_Rates_SecondChild0to12: 6113.0
+FamilyAssistance_FTC_Rates_SecondChild13to15: 6113.0
+FamilyAssistance_FTC_Rates_SecondChild16to18: 6113.0
+FamilyAssistance_FullTimeWorkingHours_Couple: 30.0
+FamilyAssistance_FullTimeWorkingHours_Single: 20.0
+FamilyAssistance_IWTC_IncomeTest: 1.0
+FamilyAssistance_IWTC_IncomeThreshold: 1184.94
+FamilyAssistance_IWTC_Rates_SubsequentChildren: 780.0
+FamilyAssistance_IWTC_Rates_UpTo3Children: 3770.0
+FamilyAssistance_MFTC_Rates_MinimumIncome: 35204.0
+FamilyAssistance_PTC_AbateSeparately: 0.0
+FamilyAssistance_PTC_AbatementCliffFace: 100000.0
+FamilyAssistance_PTC_IncludeBeneficiaries: 0.0
+FamilyAssistance_PTC_RatePerChild: 0.0
+FamilyAssistance_PTC_Weeks: 8.0
+FamilyAssistance_BestStart_Abatement_AbatementScale:
+  thresholds:
+  - 0.0
+  - 79000.0
+  rates:
+  - 0.0
+  - 0.21
+FamilyAssistance_BestStart_Rates_Age0: 3827.0
+FamilyAssistance_BestStart_Rates_Age1or2: 3827.0
+FamilyAssistance_CSPO: 1.0
+IETC_AbatementScale:
+  thresholds:
+  - 0.0
+  - 44000.0
+  rates:
+  - 0.0
+  - 0.13
+IETC_MinimalIncome: 24000.0
+IETC_PerYear: 520.0
+Super_AbatementScale:
+  thresholds:
+  - 0.0
+  - 8352.0
+  rates:
+  - 0.0
+  - 0.7
+Super_EligibleAge: 65.0
+Super_Rates_MarriedPerson: 460.74
+Super_Rates_NQSCouple: 873.56
+Super_Rates_Single: 606.02
+Super_Rates_SingleSharing: 557.53
+Tax_BaseScale:
+  thresholds:
+  - 0.0
+  - 14000.0
+  - 48000.0
+  - 70000.0
+  - 180000.0
+  rates:
+  - 0.105
+  - 0.175
+  - 0.3
+  - 0.33
+  - 0.39
+UseAccomSup: 2.0
+UseBenefitEntitlement: 1.0
+UseBenefitEntitlementForDependents: 2.0
+UseBenefitEntitlementForTMBExcluded: 2.0
+UseHoursWorked: 0.0
+UseImputedWageType: 0.0
+UseTimePeriod: 1.0
+UseWageRate: 0.0
+UseWageRateForIncrementing: 0.0
+PIE_Percent_Dividend: 0.0
+PIE_Percent_Investment: 0.0
+PIE_Rate_High: 0.0
+PIE_Rate_Low: 0.0
+PIE_Rate_Mid: 0.0
+PIE_Threshold_Lower: 0.0
+PIE_Threshold_Mid: 0.0
+PIE_Threshold_Upper: 0.0
+Benefits_BenefitSystem: 2.0

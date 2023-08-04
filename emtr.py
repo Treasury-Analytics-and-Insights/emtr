@@ -76,10 +76,6 @@ def emtr(
        **parameters['FamilyAssistance_Abatement_AbatementScale']).to_weekly(365/7)
     ietc_abatement_scale_weekly = TaxOrAbateScale(
         **parameters['IETC_AbatementScale']).to_weekly(weeks_in_year)
-    iwtc_phaseinscale_single_weekly = TaxOrAbateScale(
-        **parameters['FamilyAssistance_IWTC_PhaseIn_Single']).to_weekly(52.2)
-    iwtc_phaseinscale_couple_weekly = TaxOrAbateScale(
-        **parameters['FamilyAssistance_IWTC_PhaseIn_Couple']).to_weekly(52.2)
     family_assistance_beststart_abatement_scale_weekly = TaxOrAbateScale(
         **parameters['FamilyAssistance_BestStart_Abatement_AbatementScale']).to_weekly(365/7)
     
@@ -195,19 +191,6 @@ def emtr(
         iwtc_mask = iwtc_unabated > 0
         net_benefit1[iwtc_mask] = 0
         net_benefit2[iwtc_mask] = 0
-      
-    elif parameters['FamilyAssistance_IWTC_Eligibility'] == 2:
-        # Use phase-in method
-        
-        # Phase in scale
-        iwtc_phaseinscale_weekly = iwtc_phaseinscale_couple_weekly if partnered else iwtc_phaseinscale_single_weekly
-        
-        # Maximum amount
-        iwtc_max = iwtc_first3 + max(0, n_kids - 3) * iwtc_subsequent
-        
-        # Calculate phased-in/unabated amount
-        iwtc_unabated = (n_kids > 0) * iwtc_phaseinscale_weekly.abate(True, 0, gross_wage1 + gross_wage2)
-        iwtc_unabated = np.minimum(iwtc_max, iwtc_unabated)
     
     else:
         # Hours test and do not give to beneficiaries
