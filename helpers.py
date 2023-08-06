@@ -31,7 +31,11 @@ def fig_table_data(
     figs = {var: rate_plot(output, var) for var in RATE_VARS}
     
     output.to_csv('output.csv', index=False)
-    return figs, output
+
+    comps_sq = amounts_net_plot(sq_output, weeks_in_year = 52)
+
+    comps_reform = amounts_net_plot(reform_output, weeks_in_year = 52)
+    return figs, output, comps_reform, comps_sq
 
 
 def rate_plot(output, var_name):
@@ -86,31 +90,10 @@ def string_to_list_of_integers(s):
 
     return integer_list
 
-def amounts_net_plot(params, partnered, hrly_wage, children_ages, 
-        partner_hrly_wage, partner_hours, accom_cost, accom_type, as_area, 
-        max_hours, inc_limit=None, weeks_in_year=52,
-                     display_cols=["Net Income", "Best Start", "Winter Energy", "Accomodation Supplement",
-                                   "IWTC", "FTC", "MFTC", "IETC", "Net Core Benefit", "Net Wage",
-                                   "Net Wage (Partner)", "Tax on Core Benefit", "Tax on Wage and ACC"]):
+def amounts_net_plot(EMTR_table, weeks_in_year):
     
     # Define the number of colors needed (n=12) and the palette name ("Paired")
     colours = px.colors.qualitative.Plotly
-    
-    # Define the set_colours dictionary
-    # set_colours = {
-    #     "Best Start": px.colors.cyclical.Edge[0],
-    #     "Winter Energy": px.colors.cyclical.Edge[1],
-    #     "Accomodation Supplement": px.colors.cyclical.Edge[2],
-    #     "IWTC": px.colors.cyclical.Edge[3],
-    #     "FTC": px.colors.cyclical.Edge[4],
-    #     "MFTC": px.colors.cyclical.Edge[5],
-    #     "IETC": px.colors.cyclical.Edge[6],
-    #     "Net Core Benefit": px.colors.cyclical.Edge[7],
-    #     "Net Wage": px.colors.cyclical.Edge[8],
-    #     "Net Wage (Partner)": px.colors.cyclical.Edge[9],
-    #     "Tax on Core Benefit": px.colors.cyclical.Edge[10],
-    #     "Tax on Wage and ACC": px.colors.cyclical.Edge[11]
-    # }
 
     set_colours = {
         "Best Start": px.colors.qualitative.Alphabet[17],
@@ -126,22 +109,10 @@ def amounts_net_plot(params, partnered, hrly_wage, children_ages,
         "Tax on Core Benefit": px.colors.qualitative.Alphabet[10],
         "Tax on Wage and ACC": px.colors.qualitative.Alphabet[11]
     }
-
-    accom_rent = accom_type == 'Rent'
-    max_wage = max_hours*hrly_wage
-
-    EMTR_table = emtr.emtr(
-        params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
-        partner_hours, accom_cost, accom_rent, as_area, max_wage)
     
     X = EMTR_table.copy()
-    
-    # Do we need this?
-    # two_adults = (X['net_benefit2'].max() > 0)
-    
-    # Do we need this?
-    # wage1_hourly = X.loc[2, 'gross_wage1'] / X.loc[2, 'hours1']
-    
+
+    inc_limit = None
     if inc_limit is None:
         inc_limit = X['gross_wage1_annual'].max()
     
@@ -175,10 +146,8 @@ def amounts_net_plot(params, partnered, hrly_wage, children_ages,
                     'ftc_abated', 'mftc', 'iwtc_abated', 'as_amount',
                     'winter_energy', 'bs_total', 'net_income']]
 
-    # Y[, ':=' (gross_benefit1 = NULL, gross_benefit2 = NULL )]
-    # Y.drop(columns=['gross_benefit1', 'gross_benefit2'], inplace=True)
 
-    # Y <- Y[, lapply(.SD, function(x) x * weeks_in_year), by=(gross_wage1_annual)]
+    gross_wage_amount_annual = Y['gross_wage1_annual'].to_numpy()
     Y = Y.apply(lambda x: x * weeks_in_year)
 
     # Now 'Y' contains the transformed DataFrame with the specified columns and weeks_in_year scaling.
@@ -199,69 +168,58 @@ def amounts_net_plot(params, partnered, hrly_wage, children_ages,
         hovermode="x"
     )
     
-    if "Tax on Wage and ACC" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['wage_tax_and_ACC'], type='scatter', mode='none',
+    
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['wage_tax_and_ACC'], type='scatter', mode='none',
                                  name='Tax on Wage and ACC', fillcolor=set_colours["Tax on Wage and ACC"],
                                  stackgroup='one', hovertemplate="Tax on Wage and ACC: %{y:$,.0f}<extra></extra>"))
     
-    if "Tax on Core Benefit" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['benefit_tax'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['benefit_tax'], type='scatter', mode='none',
                                  name="Tax on Core Benefit", fillcolor=set_colours["Tax on Core Benefit"],
                                  stackgroup='one', hovertemplate="Tax on Core Benefit: %{y:$,.0f}<extra></extra>"))
     
-    if "Net Wage (Partner)" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['net_wage2'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['net_wage2'], type='scatter', mode='none',
                                  name='Net Wage (Partner)', stackgroup='two', fillcolor=set_colours["Net Wage (Partner)"],
                                  hovertemplate="Net Wage (Partner): %{y:$,.0f}<extra></extra>"))
     
-    if "Net Wage" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['net_wage1'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['net_wage1'], type='scatter', mode='none',
                                  name='Net Wage', stackgroup='two', fillcolor=set_colours["Net Wage"],
                                  hovertemplate="Net Wage: %{y:$,.0f}<extra></extra>"))
     
-    if "Net Core Benefit" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['net_benefit'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['net_benefit'], type='scatter', mode='none',
                                  name='Net Core Benefit', fillcolor=set_colours["Net Core Benefit"],
                                  stackgroup='two', hovertemplate="Net Core Benefit: %{y:$,.0f}<extra></extra>"))
     
-    if "IETC" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['ietc_abated'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['ietc_abated'], type='scatter', mode='none',
                                  name='IETC', fillcolor=set_colours["IETC"],
                                  stackgroup='two', hovertemplate="IETC: %{y:$,.0f}<extra></extra>"))
     
-    if "MFTC" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['mftc'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['mftc'], type='scatter', mode='none',
                                  name='MFTC', fillcolor=set_colours["MFTC"],
                                  stackgroup='two', hovertemplate="MFTC: %{y:$,.0f}<extra></extra>"))
     
-    if "FTC" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['ftc_abated'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['ftc_abated'], type='scatter', mode='none',
                                  name='FTC', fillcolor=set_colours["FTC"],
                                  stackgroup='two', hovertemplate="FTC: %{y:$,.0f}<extra></extra>"))
     
-    if "IWTC" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['iwtc_abated'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['iwtc_abated'], type='scatter', mode='none',
                                  name='IWTC', fillcolor=set_colours["IWTC"],
                                  stackgroup='two', hovertemplate="IWTC: %{y:$,.0f}<extra></extra>"))
     
-    if "Accomodation Supplement" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['as_amount'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['as_amount'], type='scatter', mode='none',
                                  name='Accomodation Supplement', fillcolor=set_colours["Accomodation Supplement"],
                                  stackgroup='two', hovertemplate="Accomodation Supplement: %{y:$,.0f}<extra></extra>"))
     
-    if "Winter Energy" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['winter_energy'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['winter_energy'], type='scatter', mode='none',
                                  name='Winter Energy', fillcolor=set_colours["Winter Energy"],
                                  stackgroup='two', hovertemplate="Winter Energy: %{y:$,.0f}<extra></extra>"))
     
-    if "Best Start" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['bs_total'], type='scatter', mode='none',
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['bs_total'], type='scatter', mode='none',
                                  name='Best Start', fillcolor=set_colours["Best Start"],
                                  stackgroup='two', hovertemplate="Best Start: %{y:$,.0f}<extra></extra>"))
     
     # Adding a line for Net Income
-    if "Net Income" in display_cols:
-        fig.add_trace(go.Scatter(x=Y['gross_wage1_annual'], y=Y['net_income'], mode='lines',
+
+    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['net_income'], mode='lines',
                                  name='Net Income', line=dict(color='black'),
                                  hovertemplate="Net Income: %{y:$,.0f}<extra></extra>"))
     
