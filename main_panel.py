@@ -113,7 +113,7 @@ params_tab = pn.WidgetBox(
 child_ages = string_to_list_of_integers(child_age_input.value)
 
 # Initial plot and table
-figs, table_data = fig_table_data(
+figs, table_data, comps_reform, comps_sq = fig_table_data(
     default_sq_params, default_reform_params, partner_toggle.value, hrly_wage_input.value, 
     child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
     accom_cost_input.value, accom_type_input.value, as_area_input.value,
@@ -132,18 +132,6 @@ emtr_tab = pn.Column(
     pn.pane.Markdown('## Replacement Rate'), rate_panes['replacement_rate'],
     pn.pane.Markdown('## Participation Tax Rate'), rate_panes['participation_tax_rate'],
     width = 1000, height=2000, name = 'EMTR')
-
-comps_sq = amounts_net_plot(
-    default_sq_params, partner_toggle.value, hrly_wage_input.value, 
-    child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
-    accom_cost_input.value, accom_type_input.value, as_area_input.value,
-    max_hours_input.value)
-
-comps_reform = amounts_net_plot(
-    default_reform_params, partner_toggle.value, hrly_wage_input.value, 
-    child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
-    accom_cost_input.value, accom_type_input.value, as_area_input.value,
-    max_hours_input.value)
 
 reform_pane = pn.pane.HTML(comps_reform.to_html(), width=1000, height=500)
 sq_pane = pn.pane.HTML(comps_sq.to_html(), width=1000, height=500)
@@ -180,7 +168,7 @@ def update(event):
 
     child_ages = string_to_list_of_integers(child_age_input.value)
 
-    figs, table_data = fig_table_data(
+    figs, table_data , comps_reform, comps_sq = fig_table_data(
         sq_params, reform_params, partner_toggle.value, hrly_wage_input.value, 
         child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
         accom_cost_input.value, accom_type_input.value, as_area_input.value, 
