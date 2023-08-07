@@ -1,18 +1,10 @@
-import os
-
 import panel as pn
-import yaml
 
 from helpers import *
 
 pn.extension(sizing_mode="stretch_width")
+pn.extension('plotly')
 
-# these are temporary - just to easily give us things to look at while we develop
-with open('parameters/TY22_BEFU23.yaml', 'r', encoding='utf-8') as f:
-    default_sq_params = yaml.safe_load(f)
-with open('parameters/TY23_BEFU23.yaml', 'r', encoding='utf-8') as f:
-    default_reform_params = yaml.safe_load(f)
-    
 title = pn.Column(
     pn.Row(
         pn.pane.Markdown('# Income Explorer Prototype (UNDER CONSTRUCTION !)', width=600),
@@ -23,27 +15,19 @@ title = pn.Column(
 
 # all the controls are in a widget box ------------------------------------------------
 
-example_param_file_select = pn.widgets.FileSelector(
-    directory='parameters', name='Example parameters')
-example_param_file_download = pn.widgets.FileDownload(
-    file = 'parameters/TY23_BEFU23.yaml', filename = 'TY23_BEFU23.yaml', button_type = 'primary')
+policy_controls = [
+    PolicyControl('Status Quo', local=False, param_file='TY24'),
+    PolicyControl('Reform 1', local=True),
+    PolicyControl('Reform 2', local=True),
+    PolicyControl('Reform 3', local=True)
+]
 
-def update_example_file_download(event):
-    example_param_file_download.file = example_param_file_select.value[0]
-    example_param_file_download.filename = os.path.basename(example_param_file_select.value[0])
-
-example_param_file_select.param.watch(update_example_file_download, 'value')
-
-sq_param_input = pn.widgets.FileInput(name = 'SQ')
-reform_param_input = pn.widgets.FileInput(name = 'Reform')
 
 hrly_wage_input = pn.widgets.FloatInput(name = 'Hourly Wage', value = 20)
 max_hours_input = pn.widgets.IntInput(name = 'Max Hours', value = 50)
 
-sq_income_choice_input = pn.widgets.Select(
-    name = 'SQ Income Choice', options = IncomeChoice._member_names_, value = 'WfF')
-reform_income_choice_input = pn.widgets.Select(
-    name = 'Reform Income Choice', options = IncomeChoice._member_names_, value = 'WfF')
+income_choice_input = pn.widgets.Select(
+    name = 'Income Choice', options = IncomeChoice._member_names_, value = 'WfF')
 wep_scaling_input = pn.widgets.Select(
     name = 'WEP Scaling', options = WEPScaling._member_names_, value = 'Average')
 
@@ -85,73 +69,69 @@ data_download = pn.widgets.FileDownload(
 
 widget_box = pn.WidgetBox(
     pn.pane.Markdown('### Policy parameters'),
-    pn.Row(pn.pane.Markdown('Status Quo:', width = 60),sq_param_input), 
-    pn.Row(pn.pane.Markdown("Reform:", width = 60), reform_param_input),
+    policy_controls[0].row,
+    policy_controls[1].row,
+    policy_controls[2].row,
+    policy_controls[3].row,
     pn.pane.Markdown('For help creating your own parameter file, see the "Example Parameters" tab'),
     pn.pane.Markdown('### Family specification'),
     pn.Row(hrly_wage_input, max_hours_input),
-    pn.Row(sq_income_choice_input, reform_income_choice_input),
+    income_choice_input,
     pn.Row(accom_cost_input, as_area_input), 
     pn.Row(accom_type_input, wep_scaling_input),
     partner_toggle, partner_row, child_age_input,
     go_button, data_download,
-    width = 300).servable(target='widget_box')
+    width = 400).servable(target='widget_box')
 
 # ------------------------------------------------------------------------------------
-
-# Params tab
-
-params_tab = pn.WidgetBox(
-    pn.pane.Markdown(
-        'To help create your own parameter file, choose one of the examples below to download, and edit '
-        'it in a text editor. Only the first file selected will be downloaded.'),
-        example_param_file_select, example_param_file_download, 
-        name = 'Example Parameters', width = 600, height = 500
-)
 
 # Initial plots and table
 child_ages = string_to_list_of_integers(child_age_input.value)
 
+params = {pc.name_input.value: pc.params for pc in policy_controls if pc.params is not None}
+
 # Initial plot and table
 figs, table_data = fig_table_data(
-    default_sq_params, default_reform_params, partner_toggle.value, hrly_wage_input.value, 
+    params, partner_toggle.value, hrly_wage_input.value, 
     child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
     accom_cost_input.value, accom_type_input.value, as_area_input.value,
     max_hours_input.value, WEPScaling[wep_scaling_input.value],
-    IncomeChoice[sq_income_choice_input.value], 
-    IncomeChoice[reform_income_choice_input.value])
+    IncomeChoice[income_choice_input.value])
 
 # I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
-rate_panes = {var: pn.pane.HTML(figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
+#rate_panes = {
+#    var: pn.pane.HTML(figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
+rate_panes = {
+    var: pn.pane.HTML(figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
 
 
 emtr_tab = pn.Column(
-    pn.pane.Markdown('## Net Income'), rate_panes['net_income'],
+    pn.pane.Markdown('## Net Income'), rate_panes['annual_net_income'],
     pn.pane.Markdown('## Effective Marginal Tax Rate'), rate_panes['emtr'],
     pn.pane.Markdown('## Replacement Rate'), rate_panes['replacement_rate'],
     pn.pane.Markdown('## Participation Tax Rate'), rate_panes['participation_tax_rate'],
     width = 1000, height=2000, name = 'EMTR')
 
-comps_sq = amounts_net_plot(
-    default_sq_params, partner_toggle.value, hrly_wage_input.value, 
-    child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
-    accom_cost_input.value, accom_type_input.value, as_area_input.value,
-    max_hours_input.value)
+# comps_sq = amounts_net_plot(
+#     default_sq_params, partner_toggle.value, hrly_wage_input.value, 
+#     child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
+#     accom_cost_input.value, accom_type_input.value, as_area_input.value,
+#     max_hours_input.value)
 
-comps_reform = amounts_net_plot(
-    default_reform_params, partner_toggle.value, hrly_wage_input.value, 
-    child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
-    accom_cost_input.value, accom_type_input.value, as_area_input.value,
-    max_hours_input.value)
+# comps_reform = amounts_net_plot(
+#     default_reform_params, partner_toggle.value, hrly_wage_input.value, 
+#     child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
+#     accom_cost_input.value, accom_type_input.value, as_area_input.value,
+#     max_hours_input.value)
 
-reform_pane = pn.pane.HTML(comps_reform.to_html(), width=1000, height=500)
-sq_pane = pn.pane.HTML(comps_sq.to_html(), width=1000, height=500)
+# reform_pane = pn.pane.HTML(comps_reform.to_html(), width=1000, height=500)
+# sq_pane = pn.pane.HTML(comps_sq.to_html(), width=1000, height=500)
 
-composition_tab = pn.Column(
-    pn.pane.Markdown('## Status Quo \n\n Almost done'), sq_pane,
-    pn.pane.Markdown('## Reform \n\n Almost done'), reform_pane,
-    width = 1000, height=2000, name = 'Income Composition')
+# composition_tab = pn.Column(
+#     pn.pane.Markdown('## Status Quo \n\n Almost done'), sq_pane,
+#     pn.pane.Markdown('## Reform \n\n Almost done'), reform_pane,
+#     width = 1000, height=2000, name = 'Income Composition')
 
 # Instructions tab
 with open('instructions.md', 'r') as f:
@@ -159,8 +139,8 @@ with open('instructions.md', 'r') as f:
         f.read(), name = "Instructions", width=600)
 
 pn.Tabs(
-    params_tab, emtr_tab, composition_tab, instructions, 
-    width = 1500, height=2000, active=1).servable(target='tabs')
+    emtr_tab, instructions, 
+    width = 1500, height=2000, active=0).servable(target='tabs')
 
 #-------------------------------------------------------------------------------------
 
@@ -168,25 +148,16 @@ pn.Tabs(
 
 def update(event):
     """Update the plot and table when the Go button is clicked"""
-    if sq_param_input.value:
-        # decode the bytes to a string, and then decode the yaml
-        sq_params = yaml.safe_load(sq_param_input.value.decode('utf-8'))
-    else:
-        sq_params = default_sq_params
-    if reform_param_input.value:
-        reform_params = yaml.safe_load(reform_param_input.value.decode('utf-8'))
-    else:
-        reform_params = default_reform_params
-
     child_ages = string_to_list_of_integers(child_age_input.value)
 
+    params = {pc.name_input.value: pc.params for pc in policy_controls if pc.params is not None}
+
     figs, table_data = fig_table_data(
-        sq_params, reform_params, partner_toggle.value, hrly_wage_input.value, 
+        params, partner_toggle.value, hrly_wage_input.value, 
         child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
         accom_cost_input.value, accom_type_input.value, as_area_input.value, 
         max_hours_input.value, WEPScaling[wep_scaling_input.value],
-        IncomeChoice[sq_income_choice_input.value], 
-        IncomeChoice[reform_income_choice_input.value])
+        IncomeChoice[income_choice_input.value])
     
 
     for key in figs:

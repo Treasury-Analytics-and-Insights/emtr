@@ -1,12 +1,15 @@
 from enum import Enum
+import os
 
 import pandas as pd
+import panel as pn
 import plotly.express as px
 import plotly.graph_objects as go
+import yaml
 
 import emtr
 
-RATE_VARS = ['net_income', 'emtr', 'replacement_rate', 'participation_tax_rate']
+RATE_VARS = ['annual_net_income', 'emtr', 'replacement_rate', 'participation_tax_rate']
 
 IncomeChoice = Enum('IncomeChoice', 'WfF Ben Max')
 
@@ -14,6 +17,74 @@ class WEPScaling(Enum):
     Average = 1
     Winter = 12/5
     Summer = 0
+
+
+# a class the holds the widgets for the policy controls
+
+class PolicyControl:
+    # list the built-in parameter files in the parameters directory, creating
+    # a dictionary of tax-years and parameter files
+    builtin_param_files = {
+        s.split('_')[0]: s for s in os.listdir('parameters') if s.endswith('.yaml')}
+
+    def __init__(self, name = 'Status quo', local = False, param_file = 'TY24'):
+        # a text box for the policy name
+        self.name_input = pn.widgets.TextInput(name='', value=name, width=100)
+        
+        # a toggle switch for built-in parameter files or a local file
+        self.local_toggle = pn.widgets.Toggle(name='local', value=local, width=40)
+        self.local_toggle.param.watch(self.update_param_source, 'value')
+        
+        # a select widget for the built-in parameter files
+        self.builtin_param_select = pn.widgets.Select(
+            name='', options=list(self.builtin_param_files.keys()), 
+            value=param_file)
+        self.builtin_param_select.param.watch(self.load_builtin_param_file, 'value')
+
+        # a download button for the built-in parameter files
+        self.builtin_param_download = pn.widgets.FileDownload(
+            file='parameters/' + self.builtin_param_files[self.builtin_param_select.value], 
+            filename=self.builtin_param_select.value + '.yaml', button_type='primary', 
+            width=100)
+        
+        # a file input widget for local parameter files
+        self.local_param_input = pn.widgets.FileInput(name='Local file: ')
+        self.local_param_input.param.watch(self.load_local_param_file, 'value')
+        
+        # create a row of widgets for the parameter source controls
+        # if the toggle is set to 'built-in', show the select widget and download button
+        # if the toggle is set to 'local', show the file input widget
+        self.row = pn.Row(
+            self.name_input, self.local_toggle, 
+            pn.Row(self.builtin_param_select, self.builtin_param_download, width = 150),
+            self.local_param_input)
+        
+        self.update_param_source(None)
+        self.params = None
+        if not local:
+            self.load_builtin_param_file(None)
+
+    # update the parameter source controls when the toggle is changed
+    def update_param_source(self, event):
+        if self.local_toggle.value:
+            self.row[2].visible = False
+            self.row[3].visible = True
+        else:
+            self.row[3].visible = False
+            self.row[2].visible = True
+
+    # load the selected built-in parameter file
+    def load_builtin_param_file(self, event):
+        with open('parameters/' + self.builtin_param_files[self.builtin_param_select.value]) as f:
+            self.params = yaml.safe_load(f)
+
+    # load the local parameter file
+    def load_local_param_file(self, event):
+        self.params = yaml.safe_load(self.local_param_input.value.decode('utf-8'))
+
+
+    
+
 
 
 def emtr_with_income_choice(emtr_param_func, params: dict, income_choice: IncomeChoice):
@@ -39,10 +110,9 @@ def emtr_with_income_choice(emtr_param_func, params: dict, income_choice: Income
 
 
 def fig_table_data(
-        sq_params: dict, reform_params: dict, partnered, hrly_wage, children_ages, 
+        params: dict, partnered, hrly_wage, children_ages, 
         partner_hrly_wage, partner_hours, accom_cost, accom_type, as_area, 
-        max_hours, wep_scaling: WEPScaling, sq_income_choice: IncomeChoice, 
-        reform_income_choice: IncomeChoice):
+        max_hours, wep_scaling: WEPScaling, income_choice: IncomeChoice):
     
     accom_rent = accom_type == 'Rent'
     max_wage = max_hours*hrly_wage
@@ -55,19 +125,19 @@ def fig_table_data(
             partner_hours, accom_cost, accom_rent, as_area, max_wage, 
             mftc_wep_scaling=wep_scaling)
 
-    sq_output = emtr_with_income_choice(emtr_param_func, sq_params, sq_income_choice)
+    output = {}
+    for name, scenario_params in params.items():
+        output[name] = emtr_with_income_choice(
+            emtr_param_func, scenario_params, income_choice)
     
-    reform_output = emtr_with_income_choice(
-        emtr_param_func, reform_params, reform_income_choice)
     
-    sq_output['net_income'] = sq_output['net_income'] *52
-    reform_output['net_income'] = reform_output['net_income'] *52
+    # concatenate the results into a single dataframe with a column identifying
+    # the scenario
+    output = pd.concat(output, axis=0)
+    output['scenario'] = output.index.get_level_values(0)
+    output.index = output.index.droplevel(0)
 
-    # concatenate the two dataframes row-wise and add a column to identify the two
-    # sets of results
-    output = pd.concat([sq_output, reform_output], axis=0)
-    output['scenario'] = ['SQ']*len(sq_output) + ['Reform']*len(reform_output)
-
+    
     figs = {var: rate_plot(output, var) for var in RATE_VARS}
     
     output.to_csv('output.csv', index=False)
@@ -75,7 +145,7 @@ def fig_table_data(
 
 def rate_plot(output, var_name):
     y_label = {
-        'net_income': 'Net Income',
+        'annual_net_income': 'Net Income',
         'emtr': 'Effective marginal tax rate',
         'replacement_rate': 'Replacement rate',
         'participation_tax_rate': 'Participation tax rate'
@@ -85,7 +155,7 @@ def rate_plot(output, var_name):
     plot_data = output[['gross_wage1_annual', 'hours1', var_name, 'scenario']].copy()
 
     # clip the values to the range 0-1.1
-    if var_name != 'net_income':
+    if var_name != 'annual_net_income':
         plot_data[var_name] = plot_data[var_name].clip(lower=0, upper=1.1)
 
     fig = px.line(
@@ -116,13 +186,13 @@ def rate_plot(output, var_name):
         legend={'x': 100, 'y': 0.5},
         hovermode="x")
     
-    if var_name == 'net_income':
+    if var_name == 'annual_net_income':
         fig.update_layout(
             yaxis={
                 'title': "Income ($)", 'tickformat': "$", 
                 'automargin': True, 'showline': True, 'mirror': True},
                 )
-            
+    
     return fig
 
 def string_to_list_of_integers(s):
