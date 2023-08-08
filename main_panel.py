@@ -16,10 +16,10 @@ title = pn.Column(
 # all the controls are in a widget box ------------------------------------------------
 
 policy_controls = [
-    PolicyControl('Status Quo', local=False, param_file='TY24'),
-    PolicyControl('Reform 1', local=True),
-    PolicyControl('Reform 2', local=True),
-    PolicyControl('Reform 3', local=True)
+    PolicyControl('Status Quo', source=ParamSource['built-in'], param_file='TY24'),
+    PolicyControl('Reform 1', source=ParamSource['upload']),
+    PolicyControl('Reform 2', source=ParamSource['upload']),
+    PolicyControl('Reform 3', source=ParamSource['upload'])
 ]
 
 
@@ -39,12 +39,13 @@ child_age_input = pn.widgets.TextInput(name = 'children_ages', value = "0, 5, 14
 
 #Add the "Partnered" toggle, which upon clicking, adds the controls for the second wage
 partner_toggle = pn.widgets.Toggle(
-    name = 'Partnered', button_type='primary', width=50, align=('start', 'center'))
+    name = 'Partnered', button_type='primary', width=100, align=('start', 'center'))
 partner_hrly_wage_input = pn.widgets.FloatInput(
-    name = 'Partner Hourly Wage', value = 20, disabled = True)
-partner_hours_worked_input = pn.widgets.IntInput(name = 'Partner Hours Worked', value = 0, disabled = True)
-partner_row = pn.Row(
-    partner_hrly_wage_input, partner_hours_worked_input, width = 300)
+    name = 'Partner Hourly Wage', value = 20, disabled = True, width=120)
+partner_hours_worked_input = pn.widgets.IntInput(
+    name = 'Partner Hours Worked', value = 0, disabled = True, width=120)
+#partner_row = pn.Row(
+#    partner_hrly_wage_input, partner_hours_worked_input, width = 300)
 
 # watch the partner toggle to enable/disable the partner controls
 def update_partner_controls(event):
@@ -69,19 +70,20 @@ data_download = pn.widgets.FileDownload(
 
 widget_box = pn.WidgetBox(
     pn.pane.Markdown('### Policy parameters'),
+    pn.Row(pn.pane.Markdown('**Name**', width=100), pn.pane.Markdown('**Built-in or uploaded parameter file**')),
     policy_controls[0].row,
     policy_controls[1].row,
     policy_controls[2].row,
     policy_controls[3].row,
-    pn.pane.Markdown('For help creating your own parameter file, see the "Example Parameters" tab'),
+    pn.layout.Divider(),
     pn.pane.Markdown('### Family specification'),
-    pn.Row(hrly_wage_input, max_hours_input),
-    income_choice_input,
-    pn.Row(accom_cost_input, as_area_input), 
-    pn.Row(accom_type_input, wep_scaling_input),
-    partner_toggle, partner_row, child_age_input,
+    pn.Row(hrly_wage_input, max_hours_input, child_age_input),
+    pn.Row(accom_cost_input, as_area_input, accom_type_input), 
+    pn.Row(partner_toggle, partner_hrly_wage_input, partner_hours_worked_input),
+    pn.layout.Divider(),
+    pn.Row(income_choice_input, wep_scaling_input),
     go_button, data_download,
-    width = 400).servable(target='widget_box')
+    width = 450).servable(target='widget_box')
 
 # ------------------------------------------------------------------------------------
 

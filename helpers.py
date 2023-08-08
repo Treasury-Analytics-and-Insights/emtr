@@ -11,12 +11,16 @@ import emtr
 
 RATE_VARS = ['annual_net_income', 'emtr', 'replacement_rate', 'participation_tax_rate']
 
+ParamSource = Enum('ParamSource', 'built-in upload')
+
 IncomeChoice = Enum('IncomeChoice', 'WfF Ben Max')
 
 class WEPScaling(Enum):
     Average = 1
     Winter = 12/5
     Summer = 0
+
+
 
 
 # a class the holds the widgets for the policy controls
@@ -27,25 +31,27 @@ class PolicyControl:
     builtin_param_files = {
         s.split('_')[0]: s for s in os.listdir('parameters') if s.endswith('.yaml')}
 
-    def __init__(self, name = 'Status quo', local = False, param_file = 'TY24'):
+    def __init__(self, name = 'Status quo', source = ParamSource['built-in'], param_file = 'TY24'):
+
+        self.default_name = name
         # a text box for the policy name
         self.name_input = pn.widgets.TextInput(name='', value=name, width=100)
         
         # a toggle switch for built-in parameter files or a local file
-        self.local_toggle = pn.widgets.Toggle(name='local', value=local, width=40)
-        self.local_toggle.param.watch(self.update_param_source, 'value')
+        self.param_source_select = pn.widgets.Select(
+            name='', options=ParamSource._member_names_, value=source.name, width=80)
+        self.param_source_select.param.watch(self.update_param_source, 'value')
         
         # a select widget for the built-in parameter files
         self.builtin_param_select = pn.widgets.Select(
-            name='', options=list(self.builtin_param_files.keys()), 
-            value=param_file)
+            name='', options=sorted(list(self.builtin_param_files.keys())), 
+            value=param_file, width=80)
         self.builtin_param_select.param.watch(self.load_builtin_param_file, 'value')
 
         # a download button for the built-in parameter files
         self.builtin_param_download = pn.widgets.FileDownload(
             file='parameters/' + self.builtin_param_files[self.builtin_param_select.value], 
-            filename=self.builtin_param_select.value + '.yaml', button_type='primary', 
-            width=100)
+            filename=self.builtin_param_select.value + '.yaml', button_type='primary', width=150, height=30)
         
         # a file input widget for local parameter files
         self.local_param_input = pn.widgets.FileInput(name='Local file: ')
@@ -55,32 +61,45 @@ class PolicyControl:
         # if the toggle is set to 'built-in', show the select widget and download button
         # if the toggle is set to 'local', show the file input widget
         self.row = pn.Row(
-            self.name_input, self.local_toggle, 
-            pn.Row(self.builtin_param_select, self.builtin_param_download, width = 150),
+            self.name_input, self.param_source_select,
+            pn.Row(self.builtin_param_select, self.builtin_param_download),
             self.local_param_input)
         
         self.update_param_source(None)
         self.params = None
-        if not local:
+        if source == ParamSource['built-in']:
             self.load_builtin_param_file(None)
 
     # update the parameter source controls when the toggle is changed
     def update_param_source(self, event):
-        if self.local_toggle.value:
+        if self.param_source_select.value == ParamSource.upload.name:
             self.row[2].visible = False
             self.row[3].visible = True
+            self.name_input.value = self.default_name
+            self.name_input.disabled = True
+            self.params = None
+            self.local_param_input.value = None
         else:
             self.row[3].visible = False
             self.row[2].visible = True
+            self.name_input.value = self.default_name            
+            self.name_input.disabled = False
+            self.load_builtin_param_file(None)
 
     # load the selected built-in parameter file
     def load_builtin_param_file(self, event):
         with open('parameters/' + self.builtin_param_files[self.builtin_param_select.value]) as f:
             self.params = yaml.safe_load(f)
+        self.builtin_param_download.file = 'parameters/' + \
+            self.builtin_param_files[self.builtin_param_select.value]
+        self.builtin_param_download.filename = self.builtin_param_select.value + '.yaml'
+        
 
     # load the local parameter file
     def load_local_param_file(self, event):
         self.params = yaml.safe_load(self.local_param_input.value.decode('utf-8'))
+        self.name_input.value = self.default_name
+        self.name_input.disabled = False
 
 
     
