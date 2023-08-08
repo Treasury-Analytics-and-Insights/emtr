@@ -93,7 +93,7 @@ child_ages = string_to_list_of_integers(child_age_input.value)
 params = {pc.name_input.value: pc.params for pc in policy_controls if pc.params is not None}
 
 # Initial plot and table
-figs, table_data = fig_table_data(
+rate_figs, comp_figs = figs_save_data(
     params, partner_toggle.value, hrly_wage_input.value, 
     child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
     accom_cost_input.value, accom_type_input.value, as_area_input.value,
@@ -102,12 +102,8 @@ figs, table_data = fig_table_data(
 
 # I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
-#rate_panes = {
-#    var: pn.pane.HTML(figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
 rate_panes = {
-    var: pn.pane.HTML(figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
-
-
+    var: pn.pane.HTML(rate_figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
 emtr_tab = pn.Column(
     pn.pane.Markdown('## Net Income'), rate_panes['annual_net_income'],
     pn.pane.Markdown('## Effective Marginal Tax Rate'), rate_panes['emtr'],
@@ -115,25 +111,16 @@ emtr_tab = pn.Column(
     pn.pane.Markdown('## Participation Tax Rate'), rate_panes['participation_tax_rate'],
     width = 1000, height=2000, name = 'EMTR')
 
-# comps_sq = amounts_net_plot(
-#     default_sq_params, partner_toggle.value, hrly_wage_input.value, 
-#     child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
-#     accom_cost_input.value, accom_type_input.value, as_area_input.value,
-#     max_hours_input.value)
+comp_tab = pn.Column(width = 1000, height=2000, name = 'Income Composition')
 
-# comps_reform = amounts_net_plot(
-#     default_reform_params, partner_toggle.value, hrly_wage_input.value, 
-#     child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
-#     accom_cost_input.value, accom_type_input.value, as_area_input.value,
-#     max_hours_input.value)
+def update_comp_tab(comp_figs):
+    """Update the composition tab with new figures"""
+    comp_tab.clear()
+    for scenario, fig in comp_figs.items():
+        comp_tab.append(pn.pane.Markdown(f'## {scenario}'))
+        comp_tab.append(pn.pane.HTML(fig.to_html(), width=1000, height=400))    
 
-# reform_pane = pn.pane.HTML(comps_reform.to_html(), width=1000, height=500)
-# sq_pane = pn.pane.HTML(comps_sq.to_html(), width=1000, height=500)
-
-# composition_tab = pn.Column(
-#     pn.pane.Markdown('## Status Quo \n\n Almost done'), sq_pane,
-#     pn.pane.Markdown('## Reform \n\n Almost done'), reform_pane,
-#     width = 1000, height=2000, name = 'Income Composition')
+update_comp_tab(comp_figs)
 
 # Instructions tab
 with open('instructions.md', 'r') as f:
@@ -141,12 +128,10 @@ with open('instructions.md', 'r') as f:
         f.read(), name = "Instructions", width=600)
 
 pn.Tabs(
-    emtr_tab, instructions, 
+    emtr_tab, comp_tab, instructions, 
     width = 1500, height=2000, active=0).servable(target='tabs')
 
 #-------------------------------------------------------------------------------------
-
-
 
 def update(event):
     """Update the plot and table when the Go button is clicked"""
@@ -154,16 +139,17 @@ def update(event):
 
     params = {pc.name_input.value: pc.params for pc in policy_controls if pc.params is not None}
 
-    figs, table_data = fig_table_data(
+    rate_figs, comp_figs = figs_save_data(
         params, partner_toggle.value, hrly_wage_input.value, 
         child_ages, partner_hrly_wage_input.value, partner_hours_worked_input.value,
         accom_cost_input.value, accom_type_input.value, as_area_input.value, 
         max_hours_input.value, WEPScaling[wep_scaling_input.value],
         IncomeChoice[income_choice_input.value])
     
+    for key in rate_figs:
+        rate_panes[key].object=rate_figs[key].to_html()
 
-    for key in figs:
-        rate_panes[key].object=figs[key].to_html()
+    update_comp_tab(comp_figs)
 
 
 go_button.on_click(update)
