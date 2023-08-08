@@ -1,12 +1,17 @@
 from enum import Enum
+import os
 
 import pandas as pd
+import panel as pn
 import plotly.express as px
 import plotly.graph_objects as go
+import yaml
 
 import emtr
 
-RATE_VARS = ['net_income', 'emtr', 'replacement_rate', 'participation_tax_rate']
+RATE_VARS = ['annual_net_income', 'emtr', 'replacement_rate', 'participation_tax_rate']
+
+ParamSource = Enum('ParamSource', 'built-in upload')
 
 IncomeChoice = Enum('IncomeChoice', 'WfF Ben Max')
 
@@ -14,6 +19,91 @@ class WEPScaling(Enum):
     Average = 1
     Winter = 12/5
     Summer = 0
+
+
+
+
+# a class the holds the widgets for the policy controls
+
+class PolicyControl:
+    # list the built-in parameter files in the parameters directory, creating
+    # a dictionary of tax-years and parameter files
+    builtin_param_files = {
+        s.split('_')[0]: s for s in os.listdir('parameters') if s.endswith('.yaml')}
+
+    def __init__(self, name = 'Status quo', source = ParamSource['built-in'], param_file = 'TY24'):
+
+        self.default_name = name
+        # a text box for the policy name
+        self.name_input = pn.widgets.TextInput(name='', value=name, width=100)
+        
+        # a toggle switch for built-in parameter files or a local file
+        self.param_source_select = pn.widgets.Select(
+            name='', options=ParamSource._member_names_, value=source.name, width=80)
+        self.param_source_select.param.watch(self.update_param_source, 'value')
+        
+        # a select widget for the built-in parameter files
+        self.builtin_param_select = pn.widgets.Select(
+            name='', options=sorted(list(self.builtin_param_files.keys())), 
+            value=param_file, width=80)
+        self.builtin_param_select.param.watch(self.load_builtin_param_file, 'value')
+
+        # a download button for the built-in parameter files
+        self.builtin_param_download = pn.widgets.FileDownload(
+            file='parameters/' + self.builtin_param_files[self.builtin_param_select.value], 
+            filename=self.builtin_param_select.value + '.yaml', button_type='primary', width=150, height=30)
+        
+        # a file input widget for local parameter files
+        self.local_param_input = pn.widgets.FileInput(name='Local file: ')
+        self.local_param_input.param.watch(self.load_local_param_file, 'value')
+        
+        # create a row of widgets for the parameter source controls
+        # if the toggle is set to 'built-in', show the select widget and download button
+        # if the toggle is set to 'local', show the file input widget
+        self.row = pn.Row(
+            self.name_input, self.param_source_select,
+            pn.Row(self.builtin_param_select, self.builtin_param_download),
+            self.local_param_input)
+        
+        self.update_param_source(None)
+        self.params = None
+        if source == ParamSource['built-in']:
+            self.load_builtin_param_file(None)
+
+    # update the parameter source controls when the toggle is changed
+    def update_param_source(self, event):
+        if self.param_source_select.value == ParamSource.upload.name:
+            self.row[2].visible = False
+            self.row[3].visible = True
+            self.name_input.value = self.default_name
+            self.name_input.disabled = True
+            self.params = None
+            self.local_param_input.value = None
+        else:
+            self.row[3].visible = False
+            self.row[2].visible = True
+            self.name_input.value = self.default_name            
+            self.name_input.disabled = False
+            self.load_builtin_param_file(None)
+
+    # load the selected built-in parameter file
+    def load_builtin_param_file(self, event):
+        with open('parameters/' + self.builtin_param_files[self.builtin_param_select.value]) as f:
+            self.params = yaml.safe_load(f)
+        self.builtin_param_download.file = 'parameters/' + \
+            self.builtin_param_files[self.builtin_param_select.value]
+        self.builtin_param_download.filename = self.builtin_param_select.value + '.yaml'
+        
+
+    # load the local parameter file
+    def load_local_param_file(self, event):
+        self.params = yaml.safe_load(self.local_param_input.value.decode('utf-8'))
+        self.name_input.value = self.default_name
+        self.name_input.disabled = False
+
+
+    
+
 
 
 def emtr_with_income_choice(emtr_param_func, params: dict, income_choice: IncomeChoice):
@@ -38,11 +128,10 @@ def emtr_with_income_choice(emtr_param_func, params: dict, income_choice: Income
 
 
 
-def fig_table_data(
-        sq_params: dict, reform_params: dict, partnered, hrly_wage, children_ages, 
+def figs_save_data(
+        params: dict, partnered, hrly_wage, children_ages, 
         partner_hrly_wage, partner_hours, accom_cost, accom_type, as_area, 
-        max_hours, wep_scaling: WEPScaling, sq_income_choice: IncomeChoice, 
-        reform_income_choice: IncomeChoice):
+        max_hours, wep_scaling: WEPScaling, income_choice: IncomeChoice):
     
     accom_rent = accom_type == 'Rent'
     max_wage = max_hours*hrly_wage
@@ -55,31 +144,30 @@ def fig_table_data(
             partner_hours, accom_cost, accom_rent, as_area, max_wage, 
             mftc_wep_scaling=wep_scaling)
 
-    sq_output = emtr_with_income_choice(emtr_param_func, sq_params, sq_income_choice)
+    output = {}
+    for name, scenario_params in params.items():
+        output[name] = emtr_with_income_choice(
+            emtr_param_func, scenario_params, income_choice)
     
-    reform_output = emtr_with_income_choice(
-        emtr_param_func, reform_params, reform_income_choice)
+    comp_figs = {
+        scenario: amounts_net_plot(df, weeks_in_year = 52) 
+        for scenario, df in output.items()}
     
-    sq_output['net_income'] = sq_output['net_income'] *52
-    reform_output['net_income'] = reform_output['net_income'] *52
-
-    # concatenate the two dataframes row-wise and add a column to identify the two
-    # sets of results
-    output = pd.concat([sq_output, reform_output], axis=0)
-    output['scenario'] = ['SQ']*len(sq_output) + ['Reform']*len(reform_output)
-
-    figs = {var: rate_plot(output, var) for var in RATE_VARS}
+    # concatenate the results into a single dataframe with a column identifying
+    # the scenario
+    long = pd.concat(output, axis=0)
+    long['scenario'] = long.index.get_level_values(0)
+    long.index = long.index.droplevel(0)
     
-    output.to_csv('output.csv', index=False)
+    rate_figs = {var: rate_plot(long, var) for var in RATE_VARS}
 
-    comps_sq = amounts_net_plot(sq_output, weeks_in_year = 52)
+    long.to_csv('output.csv', index=False)
 
-    comps_reform = amounts_net_plot(reform_output, weeks_in_year = 52)
-    return figs, output, comps_reform, comps_sq
+    return rate_figs, comp_figs
 
 def rate_plot(output, var_name):
     y_label = {
-        'net_income': 'Net Income',
+        'annual_net_income': 'Net Income',
         'emtr': 'Effective marginal tax rate',
         'replacement_rate': 'Replacement rate',
         'participation_tax_rate': 'Participation tax rate'
@@ -89,7 +177,7 @@ def rate_plot(output, var_name):
     plot_data = output[['gross_wage1_annual', 'hours1', var_name, 'scenario']].copy()
 
     # clip the values to the range 0-1.1
-    if var_name != 'net_income':
+    if var_name != 'annual_net_income':
         plot_data[var_name] = plot_data[var_name].clip(lower=0, upper=1.1)
 
     fig = px.line(
@@ -120,13 +208,13 @@ def rate_plot(output, var_name):
         legend={'x': 100, 'y': 0.5},
         hovermode="x")
     
-    if var_name == 'net_income':
+    if var_name == 'annual_net_income':
         fig.update_layout(
             yaxis={
                 'title': "Income ($)", 'tickformat': "$", 
                 'automargin': True, 'showline': True, 'mirror': True},
                 )
-            
+    
     return fig
 
 def string_to_list_of_integers(s):
@@ -138,74 +226,43 @@ def string_to_list_of_integers(s):
 
     return integer_list
 
-def amounts_net_plot(EMTR_table, weeks_in_year):
-    
-    # Define the number of colors needed (n=12) and the palette name ("Paired")
-    colours = px.colors.qualitative.Plotly
 
-    set_colours = {
-        "Best Start": px.colors.qualitative.Alphabet[17],
-        "Winter Energy": px.colors.qualitative.Alphabet[19],
-        "Accomodation Supplement": px.colors.qualitative.Alphabet[24],
-        "IWTC": px.colors.qualitative.Alphabet[3],
-        "FTC": px.colors.qualitative.Alphabet[1],
-        "MFTC": px.colors.qualitative.Alphabet[5],
-        "IETC": px.colors.qualitative.Alphabet[6],
-        "Net Core Benefit": px.colors.qualitative.Alphabet[7],
-        "Net Wage": px.colors.qualitative.Alphabet[8],
-        "Net Wage (Partner)": px.colors.qualitative.Alphabet[9],
-        "Tax on Core Benefit": px.colors.qualitative.Alphabet[10],
-        "Tax on Wage and ACC": px.colors.qualitative.Alphabet[11]
+def amounts_net_plot(emtr_output, weeks_in_year):
+    
+    cmap = px.colors.qualitative.Alphabet
+    colour_indices = {
+        "Best Start": 17, "Winter Energy": 19, "Accomodation Supplement": 24,
+        "IWTC": 3, "FTC": 1, "MFTC": 5, "IETC": 6, "Net Core Benefit": 7,
+        "Net Wage": 8, "Net Wage (Partner)": 9, "Tax on Core Benefit": 10,
+        "Tax on Wage and ACC": 11
     }
     
-    X = EMTR_table.copy()
-
-    inc_limit = None
-    if inc_limit is None:
-        inc_limit = X['gross_wage1_annual'].max()
+    gross_wage_annual = emtr_output['gross_wage1_annual']
     
-    # Assuming you have already loaded the necessary libraries and defined EMTR_table
+    annuals = emtr_output[
+        ['net_benefit1', 'net_benefit2', 'gross_benefit1', 'gross_benefit2', 
+         'gross_wage1', 'gross_wage2', 'net_wage1', 'net_wage2', 'wage1_tax', 
+         'wage2_tax', 
+         'wage1_acc_levy',
+         'wage2_acc_levy', 'ietc_abated1', 'ietc_abated2', 'ftc_abated', 'mftc', 
+         'iwtc_abated', 'as_amount', 'winter_energy', 'bs_total', 'net_income']
+         ]*weeks_in_year
+                           
+        
+    annuals['net_benefit'] = annuals['net_benefit1'] + annuals['net_benefit2']
+    annuals['benefit_tax'] = -(annuals['gross_benefit1'] + annuals['gross_benefit2']
+                             - annuals['net_benefit1'] - annuals['net_benefit2'])
+    annuals['gross_wage'] = annuals['gross_wage1'] + annuals['gross_wage2']
+    annuals['wage_tax_and_ACC'] = -(annuals['wage1_tax'] + annuals['wage2_tax']
+                          + annuals['wage1_acc_levy'] + annuals['wage2_acc_levy'])
+    annuals['ietc_abated'] = annuals['ietc_abated1'] + annuals['ietc_abated2']
 
-    # Calculate net_benefit as the sum of net_benefit1 and net_benefit2
-    EMTR_table['net_benefit'] = EMTR_table['net_benefit1'] + EMTR_table['net_benefit2']
-
-    # Calculate benefit_tax as -(gross_benefit1 + gross_benefit2 - net_benefit1 - net_benefit2)
-    EMTR_table['benefit_tax'] = -(EMTR_table['gross_benefit1'] + EMTR_table['gross_benefit2']
-                             - EMTR_table['net_benefit1'] - EMTR_table['net_benefit2'])
-
-    # Calculate gross_wage as the sum of gross_wage1 and gross_wage2
-    EMTR_table['gross_wage'] = EMTR_table['gross_wage1'] + EMTR_table['gross_wage2']
-
-    # Calculate wage_tax_and_ACC as -(wage1_tax + wage2_tax + wage1_acc_levy + wage2_acc_levy)
-    EMTR_table['wage_tax_and_ACC'] = -(EMTR_table['wage1_tax'] + EMTR_table['wage2_tax']
-                                  + EMTR_table['wage1_acc_levy'] + EMTR_table['wage2_acc_levy'])
-
-    # Calculate IETC_abated as the sum of ietc_abated1 and IETC_abated2
-    EMTR_table['ietc_abated'] = EMTR_table['ietc_abated1'] + EMTR_table['ietc_abated2']
-
-    # Calculate ftc_abated, mftc, and IWTC_abated based on relevant columns in EMTR_table
-
-    # Calculate AS_Amount, WinterEnergy, BestStart_Total, and Net_Income based on relevant columns in EMTR_table
-
-    # Now Y <- EMTR_table[, .(gross_wage1_annual, gross_benefit1, ... )], and perform the rest of the steps
-    Y = EMTR_table[['gross_wage1_annual', 'gross_benefit1', 'gross_benefit2',
-                    'net_benefit', 'net_wage1', 'net_wage2', 'benefit_tax',
-                    'gross_wage', 'wage_tax_and_ACC', 'ietc_abated',
-                    'ftc_abated', 'mftc', 'iwtc_abated', 'as_amount',
-                    'winter_energy', 'bs_total', 'net_income']]
-
-
-    gross_wage_amount_annual = Y['gross_wage1_annual'].to_numpy()
-    Y = Y.apply(lambda x: x * weeks_in_year)
-
-    # Now 'Y' contains the transformed DataFrame with the specified columns and weeks_in_year scaling.
-
-    
     fig = go.Figure()
     
     # Add invisible trace for xaxis2
-    fig.add_trace(go.Scatter(x=X['hours1'], y=[0] * len(X), line=dict(width=0), xaxis="x2",
-                             showlegend=False, hoverinfo="skip", mode="lines"))
+    fig.add_trace(
+        go.Scatter(x=emtr_output['hours1'], y=[0] * len(emtr_output), line=dict(width=0), 
+                   xaxis="x2", showlegend=False, hoverinfo="skip", mode="lines"))
     
     # Layout configuration
     fig.update_layout(
@@ -215,59 +272,30 @@ def amounts_net_plot(EMTR_table, weeks_in_year):
         legend=dict(x=100, y=0.5),
         hovermode="x"
     )
+
+    def add_trace(col_name, long_name, stack_group='two'):
+        fig.add_trace(
+            go.Scatter(x=gross_wage_annual, y=annuals[col_name], type='scatter', mode='none',
+                        name=long_name, fillcolor=cmap[colour_indices[long_name]],
+                        stackgroup=stack_group, 
+                        hovertemplate=f"{long_name}: %{{y:$,.0f}}<extra></extra>"))  
+
+    add_trace('wage_tax_and_ACC', 'Tax on Wage and ACC', 'one')
+    add_trace('benefit_tax', 'Tax on Core Benefit', 'one')
+    add_trace('net_wage2', 'Net Wage (Partner)')
+    add_trace('net_wage1', 'Net Wage')
+    add_trace('net_benefit', 'Net Core Benefit')
+    add_trace('ietc_abated', 'IETC')
+    add_trace('mftc', 'MFTC')
+    add_trace('ftc_abated', 'FTC')
+    add_trace('iwtc_abated', 'IWTC')
+    add_trace('as_amount', 'Accomodation Supplement')
+    add_trace('winter_energy', 'Winter Energy')
+    add_trace('bs_total', 'Best Start')
     
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['wage_tax_and_ACC'], type='scatter', mode='none',
-                                 name='Tax on Wage and ACC', fillcolor=set_colours["Tax on Wage and ACC"],
-                                 stackgroup='one', hovertemplate="Tax on Wage and ACC: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['benefit_tax'], type='scatter', mode='none',
-                                 name="Tax on Core Benefit", fillcolor=set_colours["Tax on Core Benefit"],
-                                 stackgroup='one', hovertemplate="Tax on Core Benefit: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['net_wage2'], type='scatter', mode='none',
-                                 name='Net Wage (Partner)', stackgroup='two', fillcolor=set_colours["Net Wage (Partner)"],
-                                 hovertemplate="Net Wage (Partner): %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['net_wage1'], type='scatter', mode='none',
-                                 name='Net Wage', stackgroup='two', fillcolor=set_colours["Net Wage"],
-                                 hovertemplate="Net Wage: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['net_benefit'], type='scatter', mode='none',
-                                 name='Net Core Benefit', fillcolor=set_colours["Net Core Benefit"],
-                                 stackgroup='two', hovertemplate="Net Core Benefit: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['ietc_abated'], type='scatter', mode='none',
-                                 name='IETC', fillcolor=set_colours["IETC"],
-                                 stackgroup='two', hovertemplate="IETC: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['mftc'], type='scatter', mode='none',
-                                 name='MFTC', fillcolor=set_colours["MFTC"],
-                                 stackgroup='two', hovertemplate="MFTC: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['ftc_abated'], type='scatter', mode='none',
-                                 name='FTC', fillcolor=set_colours["FTC"],
-                                 stackgroup='two', hovertemplate="FTC: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['iwtc_abated'], type='scatter', mode='none',
-                                 name='IWTC', fillcolor=set_colours["IWTC"],
-                                 stackgroup='two', hovertemplate="IWTC: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['as_amount'], type='scatter', mode='none',
-                                 name='Accomodation Supplement', fillcolor=set_colours["Accomodation Supplement"],
-                                 stackgroup='two', hovertemplate="Accomodation Supplement: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['winter_energy'], type='scatter', mode='none',
-                                 name='Winter Energy', fillcolor=set_colours["Winter Energy"],
-                                 stackgroup='two', hovertemplate="Winter Energy: %{y:$,.0f}<extra></extra>"))
-    
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['bs_total'], type='scatter', mode='none',
-                                 name='Best Start', fillcolor=set_colours["Best Start"],
-                                 stackgroup='two', hovertemplate="Best Start: %{y:$,.0f}<extra></extra>"))
     
     # Adding a line for Net Income
-
-    fig.add_trace(go.Scatter(x=gross_wage_amount_annual, y=Y['net_income'], mode='lines',
+    fig.add_trace(go.Scatter(x=gross_wage_annual, y=annuals['net_income'], mode='lines',
                                  name='Net Income', line=dict(color='black'),
                                  hovertemplate="Net Income: %{y:$,.0f}<extra></extra>"))
     
