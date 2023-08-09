@@ -46,7 +46,7 @@ class TestEmtr(EMTRTest):
             children_ages = [0, 1, 10], gross_wage2 = 0, hours2 = 0,
             as_accommodation_costs = 600, as_accommodation_rent = True, as_area = 1)
         output.to_csv('test/output/emtr_output_1.csv', index=False)
-        self.compare_with_ref_file(output, 'test/ref/emtr_output_1_new.csv')
+        self.compare_with_ref_file(output, 'test/ref/emtr_output_1.csv')
         
 
 
