@@ -149,7 +149,7 @@ def emtr(
     if as_accommodation_rent:
       as_maximum = as_max_rate_rent[np.maximum(2 - n_kids - 1 * partnered, 0), as_area-1]
     else:
-      as_maximum = as_max_rate_mortgage[np.maximum(2 - n_kids - 1 * partnered, 0) + 1, as_area-1]
+      as_maximum = as_max_rate_mortgage[np.maximum(2 - n_kids - 1 * partnered, 0), as_area-1]
     
     # Initiate the output table
     gross_wage1 = np.arange(0, max_wage + 1, 1 / steps_per_dollar)

@@ -26,19 +26,21 @@ class EMTRTest(unittest.TestCase):
         # check that all required outputs are present and equal to the reference
         for output_name in REQUIRED_OUTPUTS:
             self.assertTrue(output_name in output)
-            # compare the column and check that all values are equal - display the first 10 that are not
-            # preferably using unittest capabilities      
             if not np.allclose(output[output_name], ref[output_name], equal_nan=True):
                 print('Output does not match reference')
                 print('First 10 differences:')
-                print(output[output_name][output[output_name] != ref[output_name]].head(10))
+                close_index = np.isclose(output[output_name], ref[output_name], equal_nan=True)
+                print('test output: ')
+                print(output[output_name][~close_index].head(10))
+                print('reference: ')
+                print(ref[output_name][~close_index].head(10))
                 self.assertTrue(False)
             
 
 
 class TestEmtr(EMTRTest):
-    def test_emtr(self):
-        """1.	Single parent, children aged 0, 1, 10, AS area 1, renting"""
+    def test_emtr1(self):
+        """Single parent, children aged 0, 1, 10, AS area 1, renting"""
         with open(PARAMETERS_FILE, 'r', encoding='utf-8') as f:
             parameters = yaml.safe_load(f)
         output = emtr(
@@ -48,6 +50,65 @@ class TestEmtr(EMTRTest):
         output.to_csv('test/output/emtr_output_1.csv', index=False)
         self.compare_with_ref_file(output, 'test/ref/emtr_output_1.csv')
         
+    def test_emtr2(self):
+        """Couple parent, children aged 2, 15, partner not working, AS area 2, mortgage"""
+        with open(PARAMETERS_FILE, 'r', encoding='utf-8') as f:
+            parameters = yaml.safe_load(f)
+        output = emtr(
+            parameters, partnered = True, wage1_hourly = 18.50,
+            children_ages = [2, 15], gross_wage2 = 0, hours2 = 0,
+            as_accommodation_costs = 800, as_accommodation_rent = False, as_area = 2)
+        output.to_csv('test/output/emtr_output_2.csv', index=False)
+        self.compare_with_ref_file(output, 'test/ref/emtr_output_2.csv')
+
+    def test_emtr3(self):
+        """Couple parent, child aged 9, partner working 10 hours, AS area 4, mortgage"""
+        with open(PARAMETERS_FILE, 'r', encoding='utf-8') as f:
+            parameters = yaml.safe_load(f)
+        output = emtr(
+            parameters, partnered = True, wage1_hourly = 18.50,
+            children_ages = [9], gross_wage2=185, hours2=10,
+            as_accommodation_costs = 600, as_accommodation_rent = True, 
+            as_area = 3)
+        output.to_csv('test/output/emtr_output_3.csv', index=False)
+        self.compare_with_ref_file(output, 'test/ref/emtr_output_3.csv')
+
+    def test_emtr4(self):
+        """Couple, both working, partner working 20 hours, AS area 4, mortgage"""
+        with open(PARAMETERS_FILE, 'r', encoding='utf-8') as f:
+            parameters = yaml.safe_load(f)
+        output = emtr(
+            parameters, partnered = True, wage1_hourly = 18.50,
+            children_ages = [], gross_wage2 = 370,
+            as_accommodation_costs = 500, as_accommodation_rent = False, 
+            as_area = 4)
+        output.to_csv('test/output/emtr_output_4.csv', index=False)
+        self.compare_with_ref_file(output, 'test/ref/emtr_output_4.csv')
+
+    def test_emtr5(self):
+        """Couple, one working, AS area 1, mortgage"""
+        with open(PARAMETERS_FILE, 'r', encoding='utf-8') as f:
+            parameters = yaml.safe_load(f)
+        output = emtr(
+            parameters, partnered = True, wage1_hourly = 18.50,
+            children_ages = [], gross_wage2 = 0,
+            as_accommodation_costs = 800, as_accommodation_rent = False, 
+            as_area = 1)
+        output.to_csv('test/output/emtr_output_5.csv', index=False)
+        self.compare_with_ref_file(output, 'test/ref/emtr_output_5.csv')
+
+    def test_emtr6(self):
+        """Single, AS area 2, renting"""
+        with open(PARAMETERS_FILE, 'r', encoding='utf-8') as f:
+            parameters = yaml.safe_load(f)
+        output = emtr(
+            parameters, partnered = False, wage1_hourly = 18.50,
+            children_ages = [], gross_wage2 = 0,
+            as_accommodation_costs = 0, as_accommodation_rent = True, 
+            as_area = 2)
+        output.to_csv('test/output/emtr_output_6.csv', index=False)
+        self.compare_with_ref_file(output, 'test/ref/emtr_output_6.csv')
+
 
 
 if __name__ == '__main__':
