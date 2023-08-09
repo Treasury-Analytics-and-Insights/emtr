@@ -27,7 +27,7 @@ hrly_wage_input = pn.widgets.FloatInput(name = 'Hourly Wage', value = 20)
 max_hours_input = pn.widgets.IntInput(name = 'Max Hours', value = 50)
 
 income_choice_input = pn.widgets.Select(
-    name = 'Income Choice', options = IncomeChoice._member_names_, value = 'WfF')
+    name = 'Income Choice', options = IncomeChoice._member_names_, value = 'Max')
 wep_scaling_input = pn.widgets.Select(
     name = 'WEP Scaling', options = WEPScaling._member_names_, value = 'Average')
 
@@ -118,7 +118,7 @@ def update_comp_tab(comp_figs):
     comp_tab.clear()
     for scenario, fig in comp_figs.items():
         comp_tab.append(pn.pane.Markdown(f'## {scenario}'))
-        comp_tab.append(pn.pane.HTML(fig.to_html(), width=1000, height=400))    
+        comp_tab.append(pn.pane.HTML(fig.to_html(), width=1000, height=450))    
 
 update_comp_tab(comp_figs)
 

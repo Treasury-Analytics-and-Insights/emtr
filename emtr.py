@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 import pandas as pd
 
@@ -146,9 +147,9 @@ def emtr(
                         ((benefit1_net_0hrs + benefit2_net_0hrs) + (n_kids > 0) * ftc_eldest)
     
     if as_accommodation_rent:
-      as_maximum = as_max_rate_rent[as_area-1, np.maximum(2 - n_kids - 1 * partnered, 0) + 1]
+      as_maximum = as_max_rate_rent[np.maximum(2 - n_kids - 1 * partnered, 0), as_area-1]
     else:
-      as_maximum = as_max_rate_mortgage[as_area-1, np.maximum(2 - n_kids - 1 * partnered, 0) + 1]
+      as_maximum = as_max_rate_mortgage[np.maximum(2 - n_kids - 1 * partnered, 0) + 1, as_area-1]
     
     # Initiate the output table
     gross_wage1 = np.arange(0, max_wage + 1, 1 / steps_per_dollar)
@@ -318,46 +319,12 @@ def emtr(
     emtr = 1 - steps_per_dollar * (np.roll(net_income, -1) - net_income)
     emtr[-1] = emtr[-2]
     
-    # Replacement rate
     replacement_rate = net_income[0] / net_income
     
-    # Participation Tax Rate
-    participation_tax_rate = 1 - (net_income - net_income[0]) / (gross_wage1 + gross_wage2)
-    
-    # As in TAWA proc the disposable income is calculated as: 
-    # P_Income_Total + P_FamilyAssistance_Total + P_TaxCredit_IETC - P_Income_TaxPayable - P_ACC_LevyPayable
-    # Same definition as "Net_Income", so use "Net_Income" as disposable income.
-    
-    # Number of children under 14
-    lt_14 = np.sum(np.array(children_ages) < 14)
-    
-    # Number of children over 14
-    gte_14 = np.sum(np.array(children_ages) >= 14) + (1 if not partnered else 2)
-    
-    # Modified OECD
-    moecd_eq_factor = 1 + 0.5 * (gte_14 - 1) + 0.3 * (lt_14)
-    
-    # Equivalised Income
-    equivalised_income = net_income / moecd_eq_factor
-    
-    # BHC Depth
-    bhc_depth = (moecd_eq_factor * 
-                (pov_thresholds * bhc_median - np.maximum(0, equivalised_income * weeks_in_year))) / weeks_in_year
-    
-    # After housing cost disposable income
-    ahc_net_income = net_income - as_accommodation_costs
-    
-    # Equivalised Income
-    ahc_equivalised_income = ahc_net_income / moecd_eq_factor
-    
-    # AHC Depth
-    ahc_depth = (moecd_eq_factor * 
-                (pov_thresholds * ahc_median - np.maximum(0, ahc_equivalised_income * weeks_in_year))) / weeks_in_year
-    
-    # Unequivalised median
-    bhc_unequiv_poverty_line = pov_thresholds * moecd_eq_factor * bhc_median
-    ahc_unequiv_poverty_line = pov_thresholds * moecd_eq_factor * ahc_median
-    eq_factor = moecd_eq_factor
+    # catch warnings from the division by zero for zero hours
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        participation_tax_rate = 1 - (net_income - net_income[0]) / (gross_wage1 + gross_wage2)
     
     return pd.DataFrame(
         {'gross_wage1': gross_wage1, 'hours1': hours1, 'gross_wage1_annual': gross_wage1_annual,
@@ -369,7 +336,5 @@ def emtr(
         'abate_amount': abate_amount, 'winter_energy': winter_energy, 'as_amount': as_amount,
         'net_income': net_income, 'annual_net_income': 52*net_income,
         'emtr': emtr, 'replacement_rate': replacement_rate,
-        'participation_tax_rate': participation_tax_rate, 'bhc_depth': bhc_depth,
-        'ahc_net_income': ahc_net_income, 'ahc_depth': ahc_depth, 'eq_factor': eq_factor,
-        'bhc_unequiv_poverty_line': bhc_unequiv_poverty_line, 'ahc_unequiv_poverty_line': ahc_unequiv_poverty_line,
+        'participation_tax_rate': participation_tax_rate, 
         'ftc_abated': ftc_abated, 'iwtc_abated': iwtc_abated, 'bs_total': bs_total})
