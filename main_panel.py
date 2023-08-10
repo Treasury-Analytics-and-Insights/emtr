@@ -1,6 +1,7 @@
 import panel as pn
 
 from helpers import *
+from policy_input import PolicyInput, ParamSource
 
 pn.extension(sizing_mode="stretch_width")
 
@@ -15,10 +16,10 @@ title = pn.Column(
 # all the controls are in a widget box ------------------------------------------------
 
 policy_controls = [
-    PolicyControl('Status Quo', source=ParamSource['built-in'], param_file='TY24'),
-    PolicyControl('Reform 1', source=ParamSource['upload']),
-    PolicyControl('Reform 2', source=ParamSource['upload']),
-    PolicyControl('Reform 3', source=ParamSource['upload'])
+    PolicyInput('Status Quo', source=ParamSource['built-in'], param_file='TY24'),
+    PolicyInput('Reform 1', source=ParamSource['upload']),
+    PolicyInput('Reform 2', source=ParamSource['upload']),
+    PolicyInput('Reform 3', source=ParamSource['upload'])
 ]
 
 
@@ -87,7 +88,7 @@ widget_box = pn.WidgetBox(
 # ------------------------------------------------------------------------------------
 
 # Initial plots and table
-child_ages = string_to_list_of_integers(child_age_input.value)
+child_ages = str_to_ints(child_age_input.value)
 
 params = {pc.name_input.value: pc.params for pc in policy_controls if pc.params is not None}
 
@@ -136,7 +137,7 @@ pn.Tabs(
 def update(event):
     """Update the plot and table when the Go button is clicked"""
 
-    child_ages = string_to_list_of_integers(child_age_input.value)
+    child_ages = str_to_ints(child_age_input.value)
 
     params = {pc.name_input.value: pc.params for pc in policy_controls if pc.params is not None}
 

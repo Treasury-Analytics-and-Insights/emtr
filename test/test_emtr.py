@@ -35,7 +35,6 @@ class EMTRTest(unittest.TestCase):
                 print('reference: ')
                 print(ref[output_name][~close_index].head(10))
                 self.assertTrue(False)
-            
 
 
 class TestEmtr(EMTRTest):

@@ -33,7 +33,11 @@ Up to four different policy settings can be modelled at once.  When the app star
 
 ### Specifying family circumstances
 
-Most of the family parameters should be self-explanatory.  "AS Area" corresponds to the area of residence, and is used to determine the Accommodation Supplement (https://www.msd.govt.nz/about-msd-and-our-work/newsroom/2017/budget-2017/new-regions.html).  
+Most of the family parameters should be self-explanatory.  
+
+To specify the number of children and their ages enter a comma separated list of ages in the "Child ages" field.  For no children, leave this field blank.  For example, to specify a family with two children aged 3 and 5, enter "3,5".  
+
+"AS Area" corresponds to the area of residence, and is used to determine the Accommodation Supplement (https://www.msd.govt.nz/about-msd-and-our-work/newsroom/2017/budget-2017/new-regions.html).  
 
 ### Income choice
 
