@@ -13,7 +13,7 @@ def wks_in_year(year):
 
 
 def emtr(
-    parameters, partnered=False, wage1_hourly=16.50, children_ages=None, gross_wage2=0, hours2=0, 
+    parameters, partnered=False, wage1_hourly=16.50, children_ages=None, wage2_hourly=0, hours2=0, 
     as_accommodation_costs=0, as_accommodation_rent=True, as_area=1, 
     max_wage=1900, steps_per_dollar=1, weeks_in_year=None, 
     mftc_wep_scaling=None, pov_thresholds=0.5, bhc_median=43000, ahc_median=33100):
@@ -157,7 +157,7 @@ def emtr(
     gross_wage1_annual = weeks_in_year * gross_wage1
     
     # Partner wage
-    gross_wage2 = gross_wage2
+    gross_wage2 = wage2_hourly * hours2
     
     # These are zero by default
     wage2_tax = np.zeros_like(gross_wage1)
