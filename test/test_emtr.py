@@ -46,7 +46,7 @@ class TestEmtr(EMTRTest):
             parameters, partnered = False, wage1_hourly = 18.50,
             children_ages = [0, 1, 10], wage2_hourly = 0, hours2 = 0,
             as_accommodation_costs = 600, as_accommodation_rent = True, as_area = 1)
-        output.to_csv('test/output/emtr_output_1.csv', index=False)
+        #output.to_csv('test/output/emtr_output_1.csv', index=False)
         self.compare_with_ref_file(output, 'test/ref/emtr_output_1.csv')
         
     def test_emtr2(self):
@@ -57,7 +57,7 @@ class TestEmtr(EMTRTest):
             parameters, partnered = True, wage1_hourly = 18.50,
             children_ages = [2, 15], wage2_hourly = 0, hours2 = 0,
             as_accommodation_costs = 800, as_accommodation_rent = False, as_area = 2)
-        output.to_csv('test/output/emtr_output_2.csv', index=False)
+        #output.to_csv('test/output/emtr_output_2.csv', index=False)
         self.compare_with_ref_file(output, 'test/ref/emtr_output_2.csv')
 
     def test_emtr3(self):
@@ -69,7 +69,7 @@ class TestEmtr(EMTRTest):
             children_ages = [9], wage2_hourly = 18.5, hours2=10,
             as_accommodation_costs = 600, as_accommodation_rent = True, 
             as_area = 3)
-        output.to_csv('test/output/emtr_output_3.csv', index=False)
+        #output.to_csv('test/output/emtr_output_3.csv', index=False)
         self.compare_with_ref_file(output, 'test/ref/emtr_output_3.csv')
 
     def test_emtr4(self):
@@ -81,7 +81,7 @@ class TestEmtr(EMTRTest):
             children_ages = [], wage2_hourly = 18.50, hours2=20,
             as_accommodation_costs = 500, as_accommodation_rent = False, 
             as_area = 4)
-        output.to_csv('test/output/emtr_output_4.csv', index=False)
+        #output.to_csv('test/output/emtr_output_4.csv', index=False)
         self.compare_with_ref_file(output, 'test/ref/emtr_output_4.csv')
 
     def test_emtr5(self):
@@ -93,7 +93,7 @@ class TestEmtr(EMTRTest):
             children_ages = [], wage2_hourly=0, hours2=0,
             as_accommodation_costs = 800, as_accommodation_rent = False, 
             as_area = 1)
-        output.to_csv('test/output/emtr_output_5.csv', index=False)
+        #output.to_csv('test/output/emtr_output_5.csv', index=False)
         self.compare_with_ref_file(output, 'test/ref/emtr_output_5.csv')
 
     def test_emtr6(self):
@@ -105,7 +105,7 @@ class TestEmtr(EMTRTest):
             children_ages = [], wage2_hourly=0, hours2=0,
             as_accommodation_costs = 0, as_accommodation_rent = True, 
             as_area = 2)
-        output.to_csv('test/output/emtr_output_6.csv', index=False)
+        #output.to_csv('test/output/emtr_output_6.csv', index=False)
         self.compare_with_ref_file(output, 'test/ref/emtr_output_6.csv')
 
 

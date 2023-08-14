@@ -1,5 +1,5 @@
 # these are packages needed to run the unittests (panel not required)
 numpy
 pandas
+plotly
 pyaml
-pytest
