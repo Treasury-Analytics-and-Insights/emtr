@@ -2,7 +2,7 @@ import sys
 import unittest
 
 
-sys.path.append('..')
+sys.path.append('../')
 from helpers import *
 
 # test the str_to_ints function
