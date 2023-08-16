@@ -8,7 +8,7 @@ The application is written in Python and uses Pyscript (http://pyscript.net) to 
 
 The app comes with a set of built-in policy settings, which correspond to the legislated settings for given tax-years.  For example the settings for the 2020/21 tax-year (April 2020 to March 2021) are labelled "TY21".  TY21 settings would be selected by choosing "built-in" from the first dropdown list, and "TY21" from the second dropdown list.  
 
-If you want to investigate changes to the tax and transfer system, you can specify your own policy settings.  To do this you can click the Download button beside the built-in settings for the desired tax-year, and then edit the downloaded YAML file.  This is just a plain text file, so to edit it it, go to the Downloads folder, right-click on the file and choose "Open with" and then "Notepad" (or your preferred text editor).  The file can then be edited and saved.  
+If you want to investigate changes to the tax and transfer system, you can specify your own policy settings.  To do this you can click the Download button beside the built-in settings for the desired tax-year, and then edit the downloaded YAML file.  This is just a plain text file, so to edit it, go to the Downloads folder, right-click on the file and choose "Open with" and then "Notepad" (or your preferred text editor).  The file can then be edited and saved.  
 
 For instance to increase the Winter Energy Payment by $200 p.a. you would change the lines:
 
