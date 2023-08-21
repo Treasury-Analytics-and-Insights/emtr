@@ -1,3 +1,4 @@
+import js
 import panel as pn
 
 from helpers import *
@@ -151,5 +152,13 @@ def update(event):
         rate_panes[key].object=rate_figs[key].to_html()
 
     update_comp_tab(comp_figs)
+   
+    
  
 go_button.on_click(update)
+
+# turn off "Loading" message
+# this is already displaying a Loading message at the start
+# but we also want to display a message when the user clicks the Go button
+msg = js.document.getElementById("message")
+msg.innerHTML = ''
