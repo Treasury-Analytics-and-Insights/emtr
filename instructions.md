@@ -69,7 +69,7 @@ This tab shows four plots:
 
 ### Income components tab
 
-This tab shows the components of income for each policy setting for a range of hours worked.  
+This tab shows the components of annual income for each policy setting for a range of hours worked.  Some values look slightly inconsistent with legislated parameters (in particular annual parameters like Working for Families) because they are all scalled down to weekly payments in different ways. The income composition plot just scales these up again by a constant factor (e.g. 365/7 in a non-leap year). 
 
 ### Downloading the data
 
