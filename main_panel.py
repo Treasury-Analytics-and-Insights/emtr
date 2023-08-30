@@ -5,13 +5,15 @@ from policy_input import PolicyInput, ParamSource
 
 pn.extension(sizing_mode="stretch_width")
 
+SRC_URL = "https://github.com/Treasury-Analytics-and-Insights/emtr"
+
 title = pn.Column(
     pn.Row(
         pn.pane.Markdown('# Income Explorer Prototype', width=600),
         pn.pane.Markdown('*Best viewed full screen*', align = ('end', 'end')),
         # add url for source code
         pn.pane.Markdown(
-            "[Source code]('https://github.com/Treasury-Analytics-and-Insights/emtr/tree/main')",
+            f"[Source code]({SRC_URL} '{SRC_URL}')",
             align = ('end', 'end'))),
     # add a horizontal line
     pn.layout.Divider()).servable(target='title')
