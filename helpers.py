@@ -96,10 +96,13 @@ def rate_plot(output, var_name):
         color_discrete_sequence=["#56B4E9", "#E69F00"], 
         template="plotly_white")
     
-    if var_name != 'annual_net_income':
-        fig.update_traces(hovertemplate="%{y:.1%}")
-    else:
+    if var_name == 'annual_net_income':
+        # display the y value to the nearest dollar (with a comma for thousands)
         fig.update_traces(hovertemplate="%{y:$,.0f}")
+    else:
+        # display the y value as a percentage to 1 decimal place
+        fig.update_traces(hovertemplate="%{y:.1%}")
+        
 
     fig.add_trace(
         go.Scatter(
