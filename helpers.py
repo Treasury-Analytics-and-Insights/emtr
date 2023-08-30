@@ -45,11 +45,14 @@ def figs_save_data(
     accom_rent = accom_type == 'Rent'
     max_wage = max_hours*hrly_wage
 
+    weeks_in_year = {
+        scenario:emtr.wks_in_year(p['modelyear']) for scenario, p in params.items()}
+
     # Make a sub-function of emtr that lets us vary the parameters while holding
     # the others constant
-    def emtr_param_func(params):
+    def emtr_param_func(params_):
         return emtr.emtr(
-            params, partnered, hrly_wage, children_ages, partner_hrly_wage, 
+            params_, partnered, hrly_wage, children_ages, partner_hrly_wage, 
             partner_hours, accom_cost, accom_rent, as_area, max_wage, 
             mftc_wep_scaling=wep_scaling)
 
@@ -59,7 +62,7 @@ def figs_save_data(
             emtr_param_func, scenario_params, income_choice)
     
     comp_figs = {
-        scenario: amounts_net_plot(df, weeks_in_year = 52) 
+        scenario: amounts_net_plot(df, weeks_in_year[scenario]) 
         for scenario, df in output.items()}
     
     # concatenate the results into a single dataframe with a column identifying
