@@ -8,7 +8,11 @@ pn.extension(sizing_mode="stretch_width")
 title = pn.Column(
     pn.Row(
         pn.pane.Markdown('# Income Explorer Prototype', width=600),
-        pn.pane.Markdown('*Best viewed full screen*', align = ('end', 'end'))),
+        pn.pane.Markdown('*Best viewed full screen*', align = ('end', 'end')),
+        # add url for source code
+        pn.pane.Markdown(
+            "[Source code]('https://github.com/Treasury-Analytics-and-Insights/emtr')",
+            align = ('end', 'end'))),
     # add a horizontal line
     pn.layout.Divider()).servable(target='title')
 
