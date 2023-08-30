@@ -4,6 +4,7 @@ from helpers import *
 from policy_input import PolicyInput, ParamSource
 
 pn.extension(sizing_mode="stretch_width")
+pn.extension('plotly')
 
 SRC_URL = "https://github.com/Treasury-Analytics-and-Insights/emtr"
 
@@ -16,7 +17,7 @@ title = pn.Column(
             f"[Source code]({SRC_URL} '{SRC_URL}')",
             align = ('end', 'end'))),
     # add a horizontal line
-    pn.layout.Divider()).servable(target='title')
+    pn.layout.Divider(), width=1500).servable(target='title')
 
 
 # all the controls are in a widget box ------------------------------------------------
@@ -44,8 +45,8 @@ accom_type_input = pn.widgets.Select(
 child_age_input = pn.widgets.TextInput(name = 'Child Ages', value = "0, 5, 14")
 
 #Add the "Partnered" toggle, which upon clicking, adds the controls for the second wage
-partner_toggle = pn.widgets.Toggle(
-    name = 'Partnered', button_type='primary', width=100, align=('start', 'center'))
+partner_toggle = pn.widgets.Switch(
+    name = 'Partnered', width=50, align=('start', 'center'))
 partner_hrly_wage_input = pn.widgets.FloatInput(
     name = 'Partner Hourly Wage', value = 20, disabled = True, width=120)
 partner_hours_worked_input = pn.widgets.IntInput(
@@ -73,23 +74,25 @@ data_download = pn.widgets.FileDownload(
     width=200, align=('start', 'center'))
 
 widget_box = pn.WidgetBox(
-    pn.pane.Markdown('### Policy parameters'),
+    '### Policy parameters',
     pn.Row(pn.pane.Markdown('**Name**', width=100), 
-           pn.pane.Markdown('**Built-in (BEFU23) or uploaded parameter file**')),
+           '**Built-in (BEFU23) or uploaded parameter file**'),
     policy_controls[0].row,
     policy_controls[1].row,
     policy_controls[2].row,
     policy_controls[3].row,
     pn.layout.Divider(),
-    pn.pane.Markdown('### Family specification'),
+    '### Family specification',
     pn.Row(hrly_wage_input, max_hours_input, child_age_input),
     pn.Row(accom_cost_input, as_area_input, accom_type_input), 
-    pn.Row(partner_toggle, partner_hrly_wage_input, partner_hours_worked_input),
+    pn.Row(pn.Column(pn.pane.Markdown("Partnered", margin=1), partner_toggle, width=80, height=30, 
+                     align=('center', 'start')), partner_hrly_wage_input, partner_hours_worked_input, 
+                     align=('center', 'center')),
     pn.layout.Divider(),
     pn.Row(income_choice_input, wep_scaling_input),
     go_button,
     data_download,
-    width = 450).servable(target='widget_box')
+    width = 450)
 
 # ------------------------------------------------------------------------------------
 
@@ -109,12 +112,12 @@ rate_figs, comp_figs = figs_save_data(
 # I couldn't get a Plotly pane to update properly when the data changed.
 # using html works, but it is probably slower
 rate_panes = {
-    var: pn.pane.HTML(rate_figs[var].to_html(), width=1000, height=400) for var in RATE_VARS}
+    var: pn.pane.Plotly(rate_figs[var].to_dict(), width=1000, height=400) for var in RATE_VARS}
 emtr_tab = pn.Column(
-    pn.pane.Markdown('## Net Income'), rate_panes['annual_net_income'],
-    pn.pane.Markdown('## Effective Marginal Tax Rate'), rate_panes['emtr'],
-    pn.pane.Markdown('## Replacement Rate'), rate_panes['replacement_rate'],
-    pn.pane.Markdown('## Participation Tax Rate'), rate_panes['participation_tax_rate'],
+    '## Net Income', rate_panes['annual_net_income'],
+    '## Effective Marginal Tax Rate', rate_panes['emtr'],
+    '## Replacement Rate', rate_panes['replacement_rate'],
+    '## Participation Tax Rate', rate_panes['participation_tax_rate'],
     width = 1000, height=2000, name = 'EMTR')
 
 comp_tab = pn.Column(width = 1000, height=2000, name = 'Income Composition')
@@ -123,8 +126,8 @@ def update_comp_tab(comp_figs):
     """Update the composition tab with new figures"""
     comp_tab.clear()
     for scenario, fig in comp_figs.items():
-        comp_tab.append(pn.pane.Markdown(f'## {scenario}'))
-        comp_tab.append(pn.pane.HTML(fig.to_html(), width=1000, height=450))    
+        comp_tab.append(f'## {scenario}')
+        comp_tab.append(pn.pane.Plotly(fig.to_dict(), width=1000, height=450))    
 
 update_comp_tab(comp_figs)
 
@@ -133,10 +136,11 @@ with open('instructions.md', 'r') as f:
     instructions = pn.pane.Markdown(
         f.read(), name = "Instructions", width=600)
 
-pn.Tabs(
+tabs = pn.Tabs(
     emtr_tab, comp_tab, instructions, 
-    width = 1500, height=2000, active=0).servable(target='tabs')
+    width = 1000, height=2000, active=0)
 
+content = pn.Row(widget_box, pn.Spacer(width=30), tabs, width=1500, height=2000).servable(target='content')
 
 #-------------------------------------------------------------------------------------
 
@@ -154,8 +158,12 @@ def update(event):
         max_hours_input.value, WEPScaling[wep_scaling_input.value],
         IncomeChoice[income_choice_input.value])
     for key in rate_figs:
-        rate_panes[key].object=rate_figs[key].to_html()
+        rate_panes[key].object=rate_figs[key].to_dict()
 
     update_comp_tab(comp_figs)
  
 go_button.on_click(update)
+
+# turn off "Loading" message
+msg = js.document.getElementById("message")
+msg.innerHTML = ''

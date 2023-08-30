@@ -34,7 +34,8 @@ class PolicyInput:
         # a download button for the built-in parameter files
         self.builtin_param_download = pn.widgets.FileDownload(
             file='parameters/' + self.builtin_param_files[self.builtin_param_select.value], 
-            filename=self.builtin_param_select.value + '.yaml', button_type='primary', width=150, height=30)
+            filename=self.builtin_param_select.value + '.yaml', button_type='primary', 
+            width=100, height=30, icon = 'download', label='')
         
         # a file input widget for local parameter files
         self.local_param_input = pn.widgets.FileInput(name='Local file: ')

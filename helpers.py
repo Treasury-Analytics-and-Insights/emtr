@@ -127,7 +127,7 @@ def rate_plot(output, var_name):
             'automargin': True, 'showline': True, 'mirror': True},
         legend={'x': 100, 'y': 0.5},
         
-        hovermode="x")
+        hovermode="x unified")
     
     if var_name == 'annual_net_income':
         fig.update_layout(
