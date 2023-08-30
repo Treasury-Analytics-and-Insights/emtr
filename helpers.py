@@ -99,7 +99,13 @@ def rate_plot(output, var_name):
         color_discrete_sequence=["#56B4E9", "#E69F00"], 
         template="plotly_white")
     
-    fig.update_traces(hovertemplate=None)
+    if var_name == 'annual_net_income':
+        # display the y value to the nearest dollar (with a comma for thousands)
+        fig.update_traces(hovertemplate="%{y:$,.0f}")
+    else:
+        # display the y value as a percentage to 1 decimal place
+        fig.update_traces(hovertemplate="%{y:.1%}")
+        
 
     fig.add_trace(
         go.Scatter(
@@ -112,12 +118,15 @@ def rate_plot(output, var_name):
             'automargin': True, 'showline': True},
         xaxis={
             'title': "Annual gross wage income ($)", 'tickprefix': "$",
+            #round ticks to nearest dollar (for the sake of the hover)
+            'tickformat': ",.0f",
             'automargin': True, 'showline': True, 'mirror': True},
         
         yaxis={
             'title': y_label, 'tickformat': ".0%", 
             'automargin': True, 'showline': True, 'mirror': True},
         legend={'x': 100, 'y': 0.5},
+        
         hovermode="x")
     
     if var_name == 'annual_net_income':
@@ -179,9 +188,13 @@ def amounts_net_plot(emtr_output, weeks_in_year):
     
     # Layout configuration
     fig.update_layout(
+        # co-pilot used this syntax for the dictionaries - can't be botherd changing it
         xaxis2=dict(overlaying="x", nticks=10, side="top", title="Hours/week", automargin=True, showline=True),
-        xaxis=dict(title="Annual gross wage income ($)", tickformat="$", automargin=True, zeroline=True, showline=True, mirror=True),
-        yaxis=dict(title="Income ($)", tickformat="$", automargin=True, zeroline=True, showline=True, mirror=True),
+        xaxis=dict(
+            title="Annual gross wage income ($)", tickprefix="$", tickformat=",.0f", automargin=True, 
+            zeroline=True, showline=True, mirror=True),
+        yaxis=dict(title="Income ($)", tickformat="$", automargin=True, zeroline=True, showline=True, 
+                   mirror=True),
         legend=dict(x=100, y=0.5),
         hovermode="x"
     )
