@@ -126,7 +126,7 @@ def rate_plot(output, var_name):
             'title': y_label, 'tickformat': ".0%", 
             'automargin': True, 'showline': True, 'mirror': True},
         legend={'x': 100, 'y': 0.5},
-        
+        hoverdistance=-1,
         hovermode="x unified")
     
     if var_name == 'annual_net_income':
@@ -196,6 +196,7 @@ def amounts_net_plot(emtr_output, weeks_in_year):
         yaxis=dict(title="Income ($)", tickformat="$", automargin=True, zeroline=True, showline=True, 
                    mirror=True),
         legend=dict(x=100, y=0.5),
+        hoverdistance=-1,
         hovermode="x"
     )
 
