@@ -30,7 +30,7 @@ policy_controls = [
 ]
 
 
-hrly_wage_input = pn.widgets.FloatInput(name = 'Hourly Wage', value = 20)
+hrly_wage_input = pn.widgets.FloatInput(name = 'Hourly Wage', value = 22.70)
 max_hours_input = pn.widgets.IntInput(name = 'Max Hours', value = 50)
 
 income_choice_input = pn.widgets.Select(
@@ -48,7 +48,7 @@ child_age_input = pn.widgets.TextInput(name = 'Child Ages', value = "0, 5, 14")
 partner_toggle = pn.widgets.Switch(
     name = 'Partnered', width=50, align=('start', 'center'))
 partner_hrly_wage_input = pn.widgets.FloatInput(
-    name = 'Partner Hourly Wage', value = 20, disabled = True, width=120)
+    name = 'Partner Hourly Wage', value = 22.70, disabled = True, width=120)
 partner_hours_worked_input = pn.widgets.IntInput(
     name = 'Partner Hours Worked', value = 0, disabled = True, width=120)
 
@@ -59,7 +59,7 @@ def update_partner_controls(event):
         partner_hours_worked_input.disabled = False
     else:
         partner_hrly_wage_input.disabled = True
-        partner_hrly_wage_input.value = 20
+        partner_hrly_wage_input.value = 22.70
         partner_hours_worked_input.disabled = True 
         partner_hours_worked_input.value = 0
 
