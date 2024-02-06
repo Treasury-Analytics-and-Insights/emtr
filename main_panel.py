@@ -1,3 +1,4 @@
+import js
 import panel as pn
 
 from helpers import *

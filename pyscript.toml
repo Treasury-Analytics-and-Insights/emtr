@@ -1,0 +1,26 @@
+interpreter = "0.23.4"
+packages = [
+    "https://cdn.holoviz.org/panel/1.3.0/dist/wheels/bokeh-3.3.0-py3-none-any.whl",
+    "https://cdn.holoviz.org/panel/1.3.0/dist/wheels/panel-1.3.0-py3-none-any.whl",
+    "pandas", "numpy", "plotly"]
+[files]
+"./parameters/TY14_BEFU23.yaml" = "./parameters/TY14_BEFU23.yaml" 
+"./parameters/TY15_BEFU23.yaml" = "./parameters/TY15_BEFU23.yaml"
+"./parameters/TY16_BEFU23.yaml" = "./parameters/TY16_BEFU23.yaml"
+"./parameters/TY17_BEFU23.yaml" = "./parameters/TY17_BEFU23.yaml"
+"./parameters/TY18_BEFU23.yaml" = "./parameters/TY18_BEFU23.yaml"
+"./parameters/TY19_BEFU23.yaml" = "./parameters/TY19_BEFU23.yaml"
+"./parameters/TY20_BEFU23.yaml" = "./parameters/TY20_BEFU23.yaml"
+"./parameters/TY21_BEFU23.yaml" = "./parameters/TY21_BEFU23.yaml"
+"./parameters/TY22_BEFU23.yaml" = "./parameters/TY22_BEFU23.yaml"
+"./parameters/TY23_BEFU23.yaml" = "./parameters/TY23_BEFU23.yaml"
+"./parameters/TY24_BEFU23.yaml" = "./parameters/TY24_BEFU23.yaml"
+"./parameters/TY25_BEFU23.yaml" = "./parameters/TY25_BEFU23.yaml"
+"./parameters/TY26_BEFU23.yaml" = "./parameters/TY26_BEFU23.yaml"
+"./parameters/TY27_BEFU23.yaml" = "./parameters/TY27_BEFU23.yaml"
+"./instructions.md" = "./instructions.md"
+"./helpers.py" = "./helpers.py"
+"./taxabate.py" = "./taxabate.py"
+"./emtr.py" = "./emtr.py"
+"./policy_input.py" = "./policy_input.py"
+
